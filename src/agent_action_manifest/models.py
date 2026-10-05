@@ -50,6 +50,14 @@ class ValidationSeverity(str, Enum):
     warning = "warning"
 
 
+class ConsequenceTier(str, Enum):
+    T0 = "T0"
+    T1 = "T1"
+    T2 = "T2"
+    T3 = "T3"
+    T4 = "T4"
+
+
 class AuthorityRequirement(BaseModel):
     scope: str = Field(description="The authority scope required for this action.")
     description: str | None = Field(
@@ -108,6 +116,27 @@ class PayloadPolicy(BaseModel):
     )
 
 
+class AuthorityContextRequirement(BaseModel):
+    schema_version: str = Field(default="0.1.0", description="Authority Context schema version expected by the downstream resolver.")
+    profile_ref: str = Field(description="Reference to the pinned Alvorada implementation profile.")
+    requirement_id: str = Field(description="Authority Context requirement identifier to resolve at runtime.")
+    institution_id: str = Field(description="Institution identifier whose authority domain applies.")
+    authority_domain: str = Field(description="Institutional authority domain for this action.")
+    consequence_tier: ConsequenceTier = Field(description="Alvorada consequence profile.")
+    evidence_obligation_ids: list[str] = Field(default_factory=list, description="Evidence obligations to resolve downstream.")
+
+
+class TargetPolicy(BaseModel):
+    allowed_targets: list[str] = Field(default_factory=list, description="Finite set of allowed runtime targets.")
+    allow_any_target: bool = Field(default=False, description="Legacy escape hatch; v1.1 runtime consumption requires false.")
+
+
+class EffectLimits(BaseModel):
+    max_amount: float | None = Field(default=None, ge=0, description="Maximum numeric amount for one proposed effect.")
+    unit: str | None = Field(default=None, description="Unit associated with max_amount.")
+    max_effects: int = Field(default=1, ge=0, description="Maximum effects in one runtime proposal.")
+
+
 class RedactionHint(BaseModel):
     field_path: str = Field(
         description="JSON path or field name to be redacted in exported records."
@@ -122,6 +151,7 @@ class RedactionHint(BaseModel):
 
 class ToolDefinition(BaseModel):
     tool_name: str = Field(description="Unique name identifying this tool.")
+    adapter_id: str | None = Field(default=None, description="Stable runtime adapter identity; required for v1.1 consumption.")
     description: str | None = Field(
         default=None, description="Human-readable description of the tool."
     )
@@ -139,6 +169,7 @@ class ToolDefinition(BaseModel):
 
 class ToolAction(BaseModel):
     action_name: str = Field(description="Unique name identifying this action.")
+    action_id: str | None = Field(default=None, description="Stable action identifier; required for v1.1 consumption.")
     tool_name: str = Field(description="The tool that executes this action.")
     action_type: ActionType = Field(description="The category of action being performed.")
     description: str | None = Field(
@@ -163,6 +194,12 @@ class ToolAction(BaseModel):
     payload_policy: PayloadPolicy | None = Field(
         default=None,
         description="Field-level payload policy for this action's input payload.",
+    )
+    target_policy: TargetPolicy | None = Field(default=None, description="Finite runtime target envelope.")
+    effect_limits: EffectLimits | None = Field(default=None, description="Declared amount/effect limits.")
+    authority_context: AuthorityContextRequirement | None = Field(
+        default=None,
+        description="Reference-only Alvorada Authority Context requirements; not a grant.",
     )
     redaction_hints: list[RedactionHint] = Field(
         default_factory=list,
@@ -233,3 +270,31 @@ class ValidationReport(BaseModel):
     issues: list[ValidationIssue] = Field(
         default_factory=list, description="List of validation issues found."
     )
+
+
+class RuntimeActionProposal(BaseModel):
+    """Exact proposal material for declaration matching; never an authorization result."""
+
+    manifest_id: str
+    manifest_version: str
+    manifest_digest: str
+    actor: str
+    principal: str
+    action_id: str
+    adapter_id: str
+    target: str
+    payload: dict
+    payload_commitment: str
+    requested_permissions: list[str] = Field(default_factory=list)
+    amount: float = Field(default=0, ge=0)
+    unit: str = ""
+    effects: int = Field(default=1, ge=0)
+    authority_context_ref: str | None = None
+    requirement_id: str | None = None
+    risk_metadata: dict = Field(default_factory=dict)
+    not_before: str | None = None
+    expires_at: str | None = None
+    correlation_id: str | None = None
+    run_id: str | None = None
+    expected_side_effects: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)

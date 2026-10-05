@@ -145,3 +145,25 @@ This document describes the fields of the Agent Action Manifest format.
   ]
 }
 ```
+
+
+---
+
+## Runtime-consumption profile v1.1
+
+v1.1 is backward-compatible at the package level: v1.0 manifests still load and
+validate. Consumers that require deterministic runtime binding should require
+v1.1 explicitly.
+
+Additional v1.1 action fields:
+
+| Field | Type | Required in v1.1 runtime profile | Meaning |
+|---|---|---|---|
+| `action_id` | string | yes | Stable action identifier |
+| tool `adapter_id` | string | yes | Stable runtime adapter identity |
+| `target_policy` | object | effectful actions | Finite allowed target set |
+| `effect_limits` | object | recommended | Maximum amount/unit/effect count |
+| `authority_context` | object | effectful actions | Reference-only Authority Context mapping |
+
+See [Runtime consumption contract](runtime_consumption_contract.md) for exact
+binding and migration semantics.

@@ -187,6 +187,14 @@ Warnings do not make a manifest invalid. Errors do.
 
 ---
 
+## Runtime consumption profile v1.1
+
+The package includes a backward-compatible v1.1 consumption profile for deterministic downstream binding: stable action IDs, adapter IDs, finite targets, effect limits, Authority Context references, canonical manifest commitments, and positive/adversarial binding fixtures.
+
+v1.1 declaration matching is **not authorization**. Institutional grants, delegation, approval, policy/status currentness, and conflict resolution remain downstream responsibilities. See [docs/runtime_consumption_contract.md](docs/runtime_consumption_contract.md).
+
+---
+
 ## Relationship to Agent Control Plane
 
 Agent Action Manifest declares what an agent may propose.
@@ -217,7 +225,7 @@ JSON Schema Draft 2020-12 schemas are in the `schemas/` directory:
 
 ## Examples
 
-Four example manifests are in `examples/`:
+Five example manifests are in `examples/`:
 
 | File | Scenario |
 |---|---|
@@ -225,6 +233,7 @@ Four example manifests are in `examples/`:
 | `internal_research_agent.manifest.json` | Document search, file read, summary, report export |
 | `procurement_agent.manifest.json` | Vendor lookup, quote comparison, purchase order, vendor email |
 | `finance_workflow_agent.manifest.json` | Invoice read, payment recommendation, payment approval, audit export |
+| `refund_integration_v1_1.manifest.json` | Synthetic routine and higher-consequence refund integration pilot |
 
 All examples validate with no errors and no warnings.
 

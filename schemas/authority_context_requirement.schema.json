@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cognous.ai/agent-action-manifest/authority_context_requirement.schema.json",
+  "title": "AuthorityContextRequirement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","profile_ref","requirement_id","institution_id","authority_domain","consequence_tier"],
+  "properties": {
+    "schema_version": {"const":"0.1.0"},
+    "profile_ref": {"type":"string","minLength":1},
+    "requirement_id": {"type":"string","minLength":1},
+    "institution_id": {"type":"string","minLength":1},
+    "authority_domain": {"type":"string","minLength":1},
+    "consequence_tier": {"enum":["T0","T1","T2","T3","T4"]},
+    "evidence_obligation_ids": {"type":"array","items":{"type":"string"},"uniqueItems":true,"default":[]}
+  }
+}

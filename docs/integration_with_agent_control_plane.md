@@ -72,3 +72,31 @@ A typical integration:
 5. Apply `redaction_hints` when exporting records.
 
 The manifest is a starting point for governance — not a substitute for it.
+
+
+---
+
+## v1.1 runtime-consumption handoff
+
+For v1.1 manifests, use the contract in
+[docs/runtime_consumption_contract.md](runtime_consumption_contract.md).
+
+The handoff to the Control Plane includes actor and principal identity references,
+the exact manifest ID/version/digest, stable action and adapter IDs, target,
+payload plus payload commitment, requested permissions, amount/unit/effect count,
+Authority Context profile/requirement references, risk metadata, temporal bounds,
+correlation/run identifiers, expected side effects, and evidence references.
+
+The Control Plane should bind its authorization record to the complete runtime
+proposal commitment. It must not treat `requested_permissions` as proof that
+permissions were granted.
+
+The Manifest repository can detect structural substitution against its own
+declaration. It cannot determine whether an issuer has a valid mandate, whether a
+grant is active, whether delegated authority is still current, whether an
+approval is valid, or whether policy/status has changed. Those checks belong to
+the Control Plane resolver using authoritative institutional sources.
+
+For the bounded refund pilot, Authority Context 0.1.0 is pinned to Alvorada commit
+`fb3d97938969a89e149e8ff8db2756091d1233fc`. This is a synthetic integration
+baseline, not evidence of institutional adoption or deployment.

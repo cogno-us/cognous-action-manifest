@@ -46,6 +46,7 @@ def test_all_expected_examples_exist():
         "internal_research_agent.manifest.json",
         "procurement_agent.manifest.json",
         "finance_workflow_agent.manifest.json",
+        "refund_integration_v1_1.manifest.json",
     ]
     for name in expected:
         path = EXAMPLES_DIR / name

@@ -11,6 +11,10 @@
       "type": "string",
       "description": "Unique name identifying this action."
     },
+    "action_id": {
+      "type": ["string", "null"],
+      "description": "Stable action identifier. Required by the v1.1 consumption profile."
+    },
     "tool_name": {
       "type": "string",
       "description": "The tool that executes this action."
@@ -54,6 +58,27 @@
         { "type": "null" }
       ],
       "description": "Field-level payload policy for this action's input payload."
+    },
+    "target_policy": {
+      "oneOf": [
+        { "$ref": "target_policy.schema.json" },
+        { "type": "null" }
+      ],
+      "description": "Finite target envelope for runtime proposals."
+    },
+    "effect_limits": {
+      "oneOf": [
+        { "$ref": "effect_limits.schema.json" },
+        { "type": "null" }
+      ],
+      "description": "Amount and effect-count limits for runtime proposals."
+    },
+    "authority_context": {
+      "oneOf": [
+        { "$ref": "authority_context_requirement.schema.json" },
+        { "type": "null" }
+      ],
+      "description": "Reference-only Authority Context requirements; this is not an issued grant."
     },
     "redaction_hints": {
       "type": "array",
