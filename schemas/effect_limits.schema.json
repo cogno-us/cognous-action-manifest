@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cognous.ai/agent-action-manifest/effect_limits.schema.json",
+  "title": "EffectLimits",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "max_amount": {"type":["number","null"],"minimum":0},
+    "unit": {"type":["string","null"]},
+    "max_effects": {"type":"integer","minimum":0,"default":1}
+  }
+}
