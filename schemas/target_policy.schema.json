@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cognous.ai/agent-action-manifest/target_policy.schema.json",
+  "title": "TargetPolicy",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "allowed_targets": {"type":"array","items":{"type":"string"},"uniqueItems":true,"default":[]},
+    "allow_any_target": {"type":"boolean","default":false}
+  }
+}
