@@ -278,14 +278,23 @@ class RuntimeActionProposal(BaseModel):
     manifest_id: str
     manifest_version: str
     manifest_digest: str
+    actor: str
+    principal: str
     action_id: str
     adapter_id: str
     target: str
     payload: dict
+    payload_commitment: str
+    requested_permissions: list[str] = Field(default_factory=list)
     amount: float = Field(default=0, ge=0)
     unit: str = ""
     effects: int = Field(default=1, ge=0)
     authority_context_ref: str | None = None
     requirement_id: str | None = None
+    risk_metadata: dict = Field(default_factory=dict)
+    not_before: str | None = None
+    expires_at: str | None = None
     correlation_id: str | None = None
     run_id: str | None = None
+    expected_side_effects: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
