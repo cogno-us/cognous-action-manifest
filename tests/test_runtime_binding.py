@@ -2,7 +2,7 @@
 from copy import deepcopy
 from pathlib import Path
 
-from agent_action_manifest.binding import manifest_digest, proposal_mismatches
+from agent_action_manifest.binding import manifest_digest, payload_digest, proposal_digest, proposal_mismatches
 from agent_action_manifest.loader import load_manifest
 from agent_action_manifest.models import AgentActionManifest, RuntimeActionProposal
 from agent_action_manifest.validator import validate_manifest
@@ -16,17 +16,26 @@ def _proposal(manifest):
         manifest_id=manifest.manifest_id,
         manifest_version=manifest.manifest_version,
         manifest_digest=manifest_digest(manifest),
+        actor="urn:cognous:actor:synthetic-refund-agent",
+        principal="urn:cognous:principal:synthetic-customer-service",
         action_id="urn:cognous:action:refund-issue-routine-v1",
         adapter_id="urn:cognous:adapter:synthetic-refund-v1",
         target="urn:cognous:synthetic-account:customer-001",
         payload={"customer_id": "customer-001", "refund_reason": "duplicate charge"},
+        payload_commitment=payload_digest({"customer_id": "customer-001", "refund_reason": "duplicate charge"}),
+        requested_permissions=["refund.issue.routine"],
         amount=50,
         unit="USD",
         effects=1,
         authority_context_ref="urn:cognous:alvorada:public-stack-profile:0.1.0",
         requirement_id="urn:cognous:authority-requirement:refund-routine-v1",
+        risk_metadata={"consequence_tier": "T1"},
+        not_before="2026-10-05T00:00:00Z",
+        expires_at="2026-10-06T00:00:00Z",
         correlation_id="corr-001",
         run_id="run-001",
+        expected_side_effects=["synthetic_refund_record_created"],
+        evidence_refs=["urn:cognous:evidence:refund-entitlement"],
     )
 
 
@@ -114,3 +123,25 @@ def test_unsupported_manifest_version_rejected():
     changed = AgentActionManifest.model_validate(data)
     aliases = {i.alias for i in validate_manifest(changed).issues}
     assert "unsupported_manifest_version" in aliases
+
+
+def test_payload_commitment_substitution_rejected():
+    manifest = load_manifest(FIXTURE)
+    proposal = _proposal(manifest)
+    proposal.payload["refund_reason"] = "different reason"
+    assert "payload_commitment_mismatch" in proposal_mismatches(manifest, proposal)
+
+
+def test_missing_requested_permission_rejected():
+    manifest = load_manifest(FIXTURE)
+    proposal = _proposal(manifest)
+    proposal.requested_permissions = []
+    assert "missing_requested_permission" in proposal_mismatches(manifest, proposal)
+
+
+def test_proposal_digest_changes_when_bound_actor_changes():
+    manifest = load_manifest(FIXTURE)
+    proposal = _proposal(manifest)
+    before = proposal_digest(proposal)
+    proposal.actor = "urn:cognous:actor:substituted-agent"
+    assert proposal_digest(proposal) != before
