@@ -36,6 +36,10 @@ def payload_digest(payload: dict) -> str:
     return commitment(payload)
 
 
+def proposal_digest(proposal: RuntimeActionProposal) -> str:
+    return commitment(proposal.model_dump(mode="json", exclude_none=False))
+
+
 def resolve_action(manifest: AgentActionManifest, action_id: str) -> ToolAction | None:
     matches = [action for action in manifest.actions if action.action_id == action_id]
     return matches[0] if len(matches) == 1 else None
@@ -53,6 +57,8 @@ def proposal_mismatches(manifest: AgentActionManifest, proposal: RuntimeActionPr
         mismatches.append("manifest_version_mismatch")
     if proposal.manifest_digest != manifest_digest(manifest):
         mismatches.append("manifest_digest_mismatch")
+    if proposal.payload_commitment != payload_digest(proposal.payload):
+        mismatches.append("payload_commitment_mismatch")
 
     action = resolve_action(manifest, proposal.action_id)
     if action is None:
@@ -94,6 +100,10 @@ def proposal_mismatches(manifest: AgentActionManifest, proposal: RuntimeActionPr
             mismatches.append("amount_exceeded")
         if limits.unit is not None and proposal.unit != limits.unit:
             mismatches.append("amount_unit_mismatch")
+
+    required_permissions = {item.scope for item in action.authority_required if item.required}
+    if not required_permissions.issubset(set(proposal.requested_permissions)):
+        mismatches.append("missing_requested_permission")
 
     if action.authority_context is not None:
         auth = action.authority_context
