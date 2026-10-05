@@ -4,7 +4,8 @@
 
 - Added backward-compatible manifest v1.1 runtime-consumption profile with stable action and adapter identities.
 - Added finite target/effect declarations and reference-only Alvorada Authority Context 0.1.0 mappings.
-- Added canonical manifest/payload commitments and deterministic declaration-matching helpers; these do not authorize execution.
+- Added canonical manifest, payload, and full-proposal commitments plus deterministic declaration matching; these do not authorize execution.
+- Runtime proposals now carry actor/principal, requested permissions, temporal bounds, risk metadata, expected side effects, correlation/run IDs, and evidence references for downstream binding.
 - Added synthetic refund pilot fixture and adversarial tests for unknown actions, adapter/target/payload substitution, digest/version mismatch, amount limits, and authority requirement substitution.
 - Pinned bounded Alvorada integration baseline `fb3d97938969a89e149e8ff8db2756091d1233fc`; no deployment or institutional adoption is claimed.
 
