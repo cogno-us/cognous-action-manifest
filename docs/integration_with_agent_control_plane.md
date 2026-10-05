@@ -81,10 +81,15 @@ The manifest is a starting point for governance — not a substitute for it.
 For v1.1 manifests, use the contract in
 [docs/runtime_consumption_contract.md](runtime_consumption_contract.md).
 
-The handoff to the Control Plane includes the exact manifest ID, version and
-digest, stable action ID, stable adapter ID, target, payload, effect limits,
-Authority Context profile/requirement references, and correlation/run identifiers
-where available.
+The handoff to the Control Plane includes actor and principal identity references,
+the exact manifest ID/version/digest, stable action and adapter IDs, target,
+payload plus payload commitment, requested permissions, amount/unit/effect count,
+Authority Context profile/requirement references, risk metadata, temporal bounds,
+correlation/run identifiers, expected side effects, and evidence references.
+
+The Control Plane should bind its authorization record to the complete runtime
+proposal commitment. It must not treat `requested_permissions` as proof that
+permissions were granted.
 
 The Manifest repository can detect structural substitution against its own
 declaration. It cannot determine whether an issuer has a valid mandate, whether a
