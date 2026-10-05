@@ -26,7 +26,7 @@ from .models import (
 )
 from .loader import load_manifest, load_manifest_json, dump_manifest
 from .validator import validate_manifest
-from .binding import manifest_digest, payload_digest, resolve_action, proposal_mismatches
+from .binding import manifest_digest, payload_digest, proposal_digest, resolve_action, proposal_mismatches
 
 __all__ = [
     "ActionType",
@@ -55,6 +55,7 @@ __all__ = [
     "validate_manifest",
     "manifest_digest",
     "payload_digest",
+    "proposal_digest",
     "resolve_action",
     "proposal_mismatches",
 ]
