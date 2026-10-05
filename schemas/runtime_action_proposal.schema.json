@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.cognous.ai/agent-action-manifest/runtime_action_proposal.schema.json",
+  "title": "RuntimeActionProposal",
+  "description": "Exact proposal material for declaration matching. Schema validity is not authorization.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifest_id","manifest_version","manifest_digest","action_id","adapter_id","target","payload"],
+  "properties": {
+    "manifest_id":{"type":"string","minLength":1},
+    "manifest_version":{"const":"1.1"},
+    "manifest_digest":{"type":"string","pattern":"^sha256:[0-9a-f]{64}$"},
+    "action_id":{"type":"string","minLength":1},
+    "adapter_id":{"type":"string","minLength":1},
+    "target":{"type":"string","minLength":1},
+    "payload":{"type":"object"},
+    "amount":{"type":"number","minimum":0,"default":0},
+    "unit":{"type":"string","default":""},
+    "effects":{"type":"integer","minimum":0,"default":1},
+    "authority_context_ref":{"type":["string","null"]},
+    "requirement_id":{"type":["string","null"]},
+    "correlation_id":{"type":["string","null"]},
+    "run_id":{"type":["string","null"]}
+  }
+}
