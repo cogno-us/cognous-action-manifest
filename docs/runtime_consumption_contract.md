@@ -35,12 +35,21 @@ the runtime-consumption profile defined here.
 manifest representation with keys sorted, compact separators, explicit nulls, and
 NaN disallowed. The stored value is `sha256:<lowercase hex>`.
 
-A runtime proposal must bind the exact manifest ID/version/digest, action ID,
-adapter ID, target, payload, amount/unit/effect count, and Authority Context
-requirement references used for evaluation.
+A runtime proposal must carry and bind the exact actor, principal, manifest
+ID/version/digest, action ID, adapter ID, target, payload and payload commitment,
+requested permissions, amount/unit/effect count, Authority Context references,
+risk metadata, temporal bounds, correlation/run identifiers, expected side
+effects, and evidence references used for evaluation.
 
-Changing any bound field creates a materially different proposal and requires a
-new downstream decision.
+`proposal_digest()` provides a deterministic commitment over the complete
+proposal structure. Downstream authorization should bind to that exact proposal
+(or an equivalently complete canonical commitment), not merely to an action name.
+
+Changing any authorization-bound field creates a materially different proposal
+and requires a new downstream decision. The Manifest helper also verifies that
+`payload_commitment` matches the payload and that all statically required
+authority scopes appear in `requested_permissions`. This remains declaration
+matching, not proof that those permissions were actually granted.
 
 ## Declaration matching is not authorization
 
@@ -81,7 +90,9 @@ A conforming consumer test suite should reject or hold at least:
 5. target outside the finite declaration;
 6. payload fields outside the declared envelope;
 7. amount/effect count above declaration limits;
-8. Authority Context profile or requirement mismatch.
+8. Authority Context profile or requirement mismatch;
+9. changed payload with stale payload commitment;
+10. omission of a required requested-permission scope.
 
 Policy/status mismatches, expired/revoked grants, approval failures, and
 delegation-chain failures belong to the Control Plane resolver, not this module.
