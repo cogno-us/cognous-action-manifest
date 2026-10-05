@@ -53,9 +53,14 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
 
     # --- Errors ---
 
+    supported_versions = {"1.0", "1.1"}
+
     # 1. manifest_version must be non-empty
     if not manifest.manifest_version or not manifest.manifest_version.strip():
         issues.append(_error("E001", "manifest_version must be non-empty.", "manifest_version"))
+
+    if manifest.manifest_version and manifest.manifest_version.strip() and manifest.manifest_version not in supported_versions:
+        issues.append(_error("E016", f"Unsupported manifest_version '{manifest.manifest_version}'.", "manifest_version", alias="unsupported_manifest_version"))
 
     # 2. manifest_id must be non-empty
     if not manifest.manifest_id or not manifest.manifest_id.strip():
@@ -98,11 +103,29 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
     declared_tool_names: set[str] = {t.tool_name for t in manifest.tools}
     tools_by_name = {tool.tool_name: tool for tool in manifest.tools}
 
+    if manifest.manifest_version == "1.1":
+        action_ids = [a.action_id for a in manifest.actions if a.action_id]
+        if len(action_ids) != len(set(action_ids)):
+            issues.append(_error("E017", "v1.1 action_id values must be unique.", "actions", alias="duplicate_action_id"))
+
     for i, action in enumerate(manifest.actions):
         path_prefix = f"actions[{i}]({action.action_name})"
 
         # Determine effective default_action for this action
         effective_default = action.default_action or manifest.default_action
+
+        if manifest.manifest_version == "1.1":
+            if not action.action_id:
+                issues.append(_error("E018", f"Action '{action.action_name}' must declare action_id in v1.1.", f"{path_prefix}.action_id", alias="missing_action_id"))
+            tool = tools_by_name.get(action.tool_name)
+            if tool is not None and not tool.adapter_id:
+                issues.append(_error("E019", f"Tool '{action.tool_name}' must declare adapter_id in v1.1.", f"{path_prefix}.tool_name", alias="missing_adapter_id"))
+            effectful_types = {ActionType.write, ActionType.external_send, ActionType.delete, ActionType.export, ActionType.purchase, ActionType.approve}
+            if action.action_type in effectful_types and effective_default != DefaultAction.block:
+                if action.target_policy is None or action.target_policy.allow_any_target or not action.target_policy.allowed_targets:
+                    issues.append(_error("E020", f"Action '{action.action_name}' must declare a finite target_policy in v1.1.", f"{path_prefix}.target_policy", alias="unbounded_target_policy"))
+                if action.authority_context is None:
+                    issues.append(_error("E021", f"Action '{action.action_name}' must reference Authority Context requirements in v1.1.", f"{path_prefix}.authority_context", alias="missing_authority_context"))
 
         # 6. every ToolAction.tool_name must reference a declared ToolDefinition.tool_name
         if action.tool_name not in declared_tool_names:
