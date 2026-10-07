@@ -64,4 +64,4 @@ Follow the [README](../README.md) and select one bounded use case. Inspect its i
 
 This collateral summarizes merged public material at repository `b24ac11d5d63bccc7281cf22ba0f0b31a0510f27` and the accepted hub baseline `5737267d94d2b445735c95e8480a31de73a2abe8`. It does not anticipate pending branches. The protected-worker result applies only to its recorded Linux/bubblewrap fixture; live OpenShell and logical-intent prevention are not hub-supported at this snapshot.
 
-[Cognous](https://cogno.us) · [Source repository](https://github.com/cogno-us/cognous-agent-action-manifest) · [Stack responsibilities](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/architecture.md). Existing licenses and third-party notices remain controlling.
+[Cognous](https://cogno.us) · [Source repository](https://github.com/cogno-us/cognous-action-manifest) · [Stack responsibilities](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/architecture.md). Existing licenses and third-party notices remain controlling.
