@@ -1,4 +1,4 @@
-# Agent Action Manifest — One-Page Overview
+# Cognous Action Manifest — One-Page Overview
 
 ## Purpose
 
