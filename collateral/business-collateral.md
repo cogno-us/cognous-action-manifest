@@ -1,4 +1,4 @@
-# Agent Action Manifest — Business Collateral
+# Cognous Action Manifest — Business Collateral
 
 ## 1. Executive Summary
 
