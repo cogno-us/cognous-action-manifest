@@ -15,263 +15,95 @@
 
 # Agent Action Manifest
 
-**Declare what actions an AI agent may propose before runtime execution.**
+**Declare the action before evaluating permission.**
 
-Agent Action Manifest is a lightweight public schema and validator for describing the actions an AI agent may propose, the tools it may use, the authority each action requires, the review posture that applies, the reliance evidence expected, and the payload fields that may require redaction.
+## Overview
 
-It is designed for teams moving from agent demos to governed deployment.
+A lightweight format, Python validator and CLI for describing the actions an AI agent may propose. Manifest 1.1 adds deterministic runtime bindings so a downstream controller can compare a proposal with a specific declared action.
 
-It helps answer a simple question:
+**Implementation status:** this README describes merged public reference work. Component acceptance, selection in the hub and execution of a qualification are separate facts. The selected revision for this component is `46c950bed37fe3812000895430bc0312d29e37ce`; the [hub lock](https://github.com/cogno-us/cognous-open-control-stack/blob/5737267d94d2b445735c95e8480a31de73a2abe8/component-lock.json) is the source of that integration choice.
 
-> What is this agent allowed to propose?
+## Purpose and intended users
 
----
+A tool name is not a sufficient policy boundary. The same integration can read information, draft a message, issue a payment or delete a record. Reviewers need an explicit action inventory and developers need stable identifiers and constraints that survive handoff to runtime control.
 
-This repository is intentionally narrow. It is not an agent framework, not a model runtime, not a policy engine, and not a runtime security boundary. It is a reference format for action inventory and governance preparation.
+Engineers can inspect the reference contracts and examples; enterprise architecture, security and governance reviewers can examine the boundary and evidence. Evaluate this component for its named responsibility rather than as a complete governance platform.
 
----
+## Key features
 
-## What it is
+| Capability | Implemented or specified responsibility |
+|---|---|
+| **Action inventory** | Identify tools, action types, owners and the intended scope of an agent before execution. |
+| **Governance requirements** | Declare authority, review and reliance requirements without issuing grants. |
+| **Payload handling** | Describe sensitive fields and redaction hints for downstream record handling. |
+| **Runtime binding** | Bind stable action and adapter IDs, finite targets, effect limits and Authority Context references under the 1.1 profile. |
+| **Validation and inspection** | Use Pydantic models, JSON schemas and the aam CLI to validate, summarize and list actions. |
 
-Agent Action Manifest is a:
+## How it works
 
-- **Schema** — a structured JSON format for declaring agent actions and their requirements
-- **Validator** — a Python library and CLI that validates a manifest against a set of governance rules
-- **Reference implementation** — a set of example manifests for common enterprise agent scenarios
+A reviewer declares a routine refund and its allowed adapter, target and effect limits. The runtime binds a proposal to that manifest commitment. The Control Plane then independently resolves institutional authority and checks the actual proposal; matching the declaration alone never authorizes the refund.
 
-It produces a `ValidationReport` that surfaces errors and warnings without executing any code. Each issue keeps its stable numeric code and may also include an optional semantic `alias` for integrations that prefer descriptive identifiers.
+A valid signature, chain inclusion, message receipt, reasoning instruction or evidence-package digest does not authorize execution. Institutional authority must be supplied and evaluated through the appropriate trusted boundary.
 
----
+## Getting started
 
-## Why it matters
-
-Agent teams need to know — before deployment:
-
-- What actions can this agent propose?
-- Which tools can it call?
-- Which actions require authority?
-- Which actions require human review?
-- Which actions require reliance records?
-- Which payload fields may be sensitive?
-- Which fields should be redacted in exported evidence?
-- What should happen by default: allow, block, or escalate?
-
-Without a manifest, these questions are answered by reading code, asking developers, or discovering failures in production. A manifest makes the action inventory explicit and auditable before the agent runs.
-
----
-
-## What a manifest declares
-
-1. The agent being described
-2. The tools it may use
-3. The actions it may propose
-4. Each action's type (read, write, external send, delete, export, purchase, approve, escalate)
-5. The authority required for each action
-6. Whether review is required (none, human review, approval required, draft first)
-7. Whether reliance must be recorded
-8. Which payload fields are sensitive
-9. Which fields should be redacted in exported records
-10. Whether the action is blocked, escalated, or allowed by default
-
----
-
-## Quickstart
+From a fresh repository checkout, use Python 3.11+ and an activated virtual environment. Install only into that environment. Package installation needs network access; the commands below exercise local reference tooling. For the full selected integration, use the [hub quickstart](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/quickstart.md), whose runner supplies exact producer checkouts and test wiring.
 
 ```bash
-pip install -e ".[dev]"
-pytest
-aam validate examples/customer_service_agent.manifest.json
+python -m pip install -e ".[dev]"
+aam validate examples/refund_integration_v1_1.manifest.json
 aam summarize examples/customer_service_agent.manifest.json
-aam list-actions examples/customer_service_agent.manifest.json
-```
-
----
-
-## Example manifest
-
-```json
-{
-  "manifest_version": "1.0",
-  "manifest_id": "customer-service-agent-v1",
-  "agent_name": "Customer Service Agent",
-  "owner": "customer-experience-team",
-  "environment": "production",
-  "default_action": "escalate",
-  "tools": [
-    {
-      "tool_name": "email_tool",
-      "description": "Drafts and sends emails to customers.",
-      "external_system": "smtp.internal",
-      "data_classification": "confidential"
-    }
-  ],
-  "actions": [
-    {
-      "action_name": "email_send",
-      "tool_name": "email_tool",
-      "action_type": "external_send",
-      "description": "Send an approved email to a customer.",
-      "authority_required": [
-        {
-          "scope": "email.send.customer",
-          "description": "Permission to send outbound emails to customers.",
-          "required": true
-        }
-      ],
-      "review_requirement": {
-        "mode": "approval_required",
-        "reviewer_role": "customer-service-supervisor",
-        "reason": "All outbound customer emails require supervisor approval."
-      },
-      "payload_policy": {
-        "required_fields": ["to", "subject", "body"],
-        "sensitive_fields": ["to", "body"],
-        "forbidden_fields": ["bcc"]
-      },
-      "redaction_hints": [
-        {
-          "field_path": "to",
-          "reason": "Recipient email address must be redacted in exported records."
-        }
-      ]
-    }
-  ]
-}
-```
-
----
-
-## CLI
-
-```
-aam validate examples/customer_service_agent.manifest.json
-aam summarize examples/customer_service_agent.manifest.json
-aam list-actions examples/customer_service_agent.manifest.json
 aam check-examples
 ```
 
-| Command | Exit code | Description |
-|---|---|---|
-| `validate` | 0 = valid, 1 = invalid, 2 = error | Validate a manifest and print issues |
-| `summarize` | 0 = success | Print a compact summary of the manifest |
-| `list-actions` | 0 = success | List all actions with type, posture, authority, and review |
-| `check-examples` | 0 = all valid | Validate all `examples/*.manifest.json` files |
+## Evidence and supported scope
+
+The hub selects Manifest 1.1 at `46c950bed37fe3812000895430bc0312d29e37ce`. The package version and the runtime consumption profile are different version axes. The bounded refund fixture is integration evidence; the other domain examples demonstrate declaration structure, not deployed sector assurance.
+
+The accepted [hub persistence-generation evidence](https://github.com/cogno-us/cognous-open-control-stack/blob/5737267d94d2b445735c95e8480a31de73a2abe8/examples/control-plane-store-adoption/qualification-summary.json) records 915 Python tests in each of two repetitions, 35 matrix entries satisfying their gates and 120 separate mocked OpenShell tests. Those are aggregate hub results, not a per-component test count or a claim of production readiness. Optional behavioral layers receive static checks only. The [support ledger](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/release-status.md) separates implementation, execution and adoption.
+
+## Limitations and deployment decisions
+
+This is declaration and validation, not a security boundary or runtime access-control system. A valid manifest does not establish institutional legitimacy, current approval, a completed effect or compliance. Redaction hints must be applied by the exporting system.
+
+Review original artifacts and their exact source revisions before extending a claim to a new environment. New dependencies, authority sources, destinations or enforcement mechanisms need their own compatibility and qualification. A passing reference case is not a certification of an enterprise deployment.
+
+## Repository guide
+
+Use these sources for details; their historical checkpoints retain the status and scope of the work they recorded:
+
+- [docs/runtime_consumption_contract.md](docs/runtime_consumption_contract.md)
+- [docs/manifest_format.md](docs/manifest_format.md)
+- [docs/integration_with_agent_control_plane.md](docs/integration_with_agent_control_plane.md)
+- [docs/examples.md](docs/examples.md)
+
+For a nontechnical introduction, read the [business overview](collateral/business-collateral.md) and [one-page overview](collateral/one-page-overview.md). Both describe this component's role and evidence limits, not additional runtime features.
+
+## Contributing and attribution
+
+[Contribution guidance](CONTRIBUTING.md) describes review and validation expectations. Keep evidence-linked claims, preserve historical records and separate proposed features from accepted implementation.
+
+See [LICENSE](LICENSE) and [attribution](NOTICE) for the existing terms and third-party scope. Developed by [Cognous](https://cogno.us); no licensing change is part of this documentation update.
 
 ---
 
-## Validation rules
+## Cognous stack components
 
-### Errors
+[Stack hub](https://github.com/cogno-us/cognous-open-control-stack) · [Selected pins](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) · [Evidence and limits](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/release-status.md)
 
-| Code | Rule |
+Component links are navigation, not a requirement to install every component. The hub lock determines its supported integration.
+
+| Component | Responsibility |
 |---|---|
-| E001 | `manifest_version` must be non-empty |
-| E002 | `manifest_id` must be non-empty |
-| E003 | `agent_name` must be non-empty |
-| E004 | `action_name` values must be unique |
-| E005 | `tool_name` values in `tools` must be unique |
-| E006 | Every action `tool_name` must reference a declared tool |
-| E007 | `external_send` actions must have at least one authority requirement unless blocked |
-| E008 | `write`, `delete`, `purchase`, and `approve` actions must have authority unless blocked |
-| E009 | `forbidden_fields` must not overlap with `required_fields` |
-| E010 | `forbidden_fields` must not overlap with `optional_fields` |
-| E011 | `sensitive_fields` must reference fields in `required_fields` or `optional_fields` when those lists are non-empty |
-| E012 | `RedactionHint.field_path` must be non-empty |
-| E013 | `approval_required` mode requires `reviewer_role` to be set |
-| E014 | `default_action: allow` for high-risk action types requires authority and a review mode other than `none` |
-| E015 | An action cannot reference a tool marked `allowed: false` unless the action's effective `default_action` is `block` |
-
-Example aliases emitted in `ValidationIssue.alias` include `duplicate_action_name`, `duplicate_tool_name`, `unknown_tool_reference`, `external_send_missing_authority`, `privileged_action_missing_authority`, `high_risk_action_missing_authority`, `approval_missing_reviewer_role`, and `disallowed_tool_reference`.
-
-### Warnings
-
-| Code | Rule |
-|---|---|
-| W001 | Manifest has no actions |
-| W002 | Manifest has no tools |
-| W003 | Manifest `default_action` is `allow` |
-| W004 | Action effective `default_action` is `allow` for `write` or `external_send` |
-| W005 | `reliance_requirement` missing for `read`, `export`, or `external_send` actions |
-| W006 | `payload_policy` missing for `write`, `external_send`, `delete`, `export`, `purchase`, or `approve` actions |
-| W007 | `sensitive_fields` are declared but no `redaction_hints` are present |
-| W008 | Tool has `external_system` but no `data_classification` |
-| W009 | Action has no `description` |
-| W010 | Manifest `owner` is not set |
-
-Warnings do not make a manifest invalid. Errors do.
-
----
-
-## Runtime consumption profile v1.1
-
-The package includes a backward-compatible v1.1 consumption profile for deterministic downstream binding: stable action IDs, adapter IDs, finite targets, effect limits, Authority Context references, canonical manifest commitments, and positive/adversarial binding fixtures.
-
-v1.1 declaration matching is **not authorization**. Institutional grants, delegation, approval, policy/status currentness, and conflict resolution remain downstream responsibilities. See [docs/runtime_consumption_contract.md](docs/runtime_consumption_contract.md).
-
----
-
-## Relationship to Agent Control Plane
-
-Agent Action Manifest declares what an agent may propose.
-Agent Control Plane records what the agent actually proposes and how policy decisions were made at runtime.
-
-A manifest is a starting point for governance. It does not replace runtime enforcement, audit logging, or access control.
-
-See [docs/integration_with_agent_control_plane.md](docs/integration_with_agent_control_plane.md) for details.
-
----
-
-## JSON schemas
-
-JSON Schema Draft 2020-12 schemas are in the `schemas/` directory:
-
-| Schema | Description |
-|---|---|
-| `agent_action_manifest.schema.json` | Top-level manifest schema |
-| `tool_action.schema.json` | Individual action schema |
-| `authority_requirement.schema.json` | Authority scope requirement |
-| `review_requirement.schema.json` | Review posture requirement |
-| `reliance_requirement.schema.json` | Reliance evidence requirement |
-| `payload_policy.schema.json` | Field-level payload policy |
-| `redaction_hint.schema.json` | Field redaction hint |
-| `validation_report.schema.json` | Validation report output |
-
----
-
-## Examples
-
-Five example manifests are in `examples/`:
-
-| File | Scenario |
-|---|---|
-| `customer_service_agent.manifest.json` | CRM reads, notes search, email draft and send |
-| `internal_research_agent.manifest.json` | Document search, file read, summary, report export |
-| `procurement_agent.manifest.json` | Vendor lookup, quote comparison, purchase order, vendor email |
-| `finance_workflow_agent.manifest.json` | Invoice read, payment recommendation, payment approval, audit export |
-| `refund_integration_v1_1.manifest.json` | Synthetic routine and higher-consequence refund integration pilot |
-
-All examples validate with no errors and no warnings.
-
-See [docs/examples.md](docs/examples.md) for details.
-
----
-
-## Security and scope
-
-This is a schema and validator. It is not a security boundary. It does not enforce runtime access control by itself.
-
-See [SECURITY.md](SECURITY.md) for the full security scope statement.
-
----
-
-## Roadmap
-
-See [docs/roadmap.md](docs/roadmap.md).
-
----
-
-## License
-
-See also [CHANGELOG.md](CHANGELOG.md).
-
-Apache 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+| [Agent Control Plane](https://github.com/cogno-us/cognous-agent-control-plane) | Evaluate proposals against authority and preserve the decision record |
+| [Agent Replay Bundle](https://github.com/cogno-us/cognous-agent-replay-bundle) | Reconstruct what the retained records support |
+| [Agent Governance Evidence Pack](https://github.com/cogno-us/cognous-agent-governance-evidence-pack) | Turn traceable runtime records into reviewable governance evidence |
+| [Open Decision Evidence Standard](https://github.com/cogno-us/open-decision-evidence-standard) | Portable decision evidence across system and organizational boundaries |
+| [Alvorada Experimental Workbench](https://github.com/cogno-us/alvorada) | Governed exchange and continuity for a bounded synthetic workflow |
+| [Moltbot Safe](https://github.com/cogno-us/moltbot-safe) | Constrained execution beneath independent current authorization |
+| [BitRep](https://github.com/cogno-us/bitrep) | Verify issuer signatures under explicit trust assumptions |
+| [The Index](https://github.com/cogno-us/the-index) | A local blockchain reference for claims, evidence commitments and lifecycle history |
+| [Portable Reasoning Protocol v1.0](https://github.com/cogno-us/portable-reasoning-protocol) | Portable instructions for evidence-bounded reasoning |
+| [Research Intelligence Protocol v1.0](https://github.com/cogno-us/research-intelligence-protocol) | Disciplined discovery and cross-domain abstraction, kept separate |
+| [TFA Protocol (S43)](https://github.com/cogno-us/truth-freedom-agency-protocol) | Truth · Freedom · Agency |
+| [Constitutional Governance for Institutions](https://github.com/cogno-us/constitutional-governance-for-institutions) | Alvorada: authority, challenge and correction for institutions |
