@@ -273,7 +273,11 @@ class ValidationReport(BaseModel):
 
 
 class RuntimeActionProposal(BaseModel):
-    """Exact proposal material for declaration matching; never an authorization result."""
+    """Historical runtime-action-proposal/1.1 material.
+
+    This model intentionally remains tenant-unaware so historical 1.1 bytes and
+    commitments are not rewritten or upgraded.
+    """
 
     manifest_id: str
     manifest_version: str
@@ -298,3 +302,14 @@ class RuntimeActionProposal(BaseModel):
     run_id: str | None = None
     expected_side_effects: list[str] = Field(default_factory=list)
     evidence_refs: list[str] = Field(default_factory=list)
+
+
+class RuntimeActionProposalV12(RuntimeActionProposal):
+    """Tenant-aware runtime-action-proposal/1.2 material.
+
+    tenant_id is supplied by trusted deployment/authority context. It is an
+    opaque exact string: no trimming, case folding, Unicode normalization, or
+    inference is performed here.
+    """
+
+    tenant_id: str = Field(min_length=1, max_length=128)
