@@ -12,7 +12,7 @@
     "customer_id": "customer-001",
     "refund_reason": "duplicate charge"
   },
-  "payload_commitment": "sha256:0b7db18bc64046f467d351c6016cc7c52c223dc77752f0d6e05889a8a43630e9",
+  "payload_commitment": "sha256:e763a802eea4e89f7b0e195939975c4d1cdcf9c4c4f189aa7e2a5a70c6858f2f",
   "requested_permissions": [
     "refund.issue.routine"
   ],
