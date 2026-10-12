@@ -68,3 +68,46 @@ def test_rejects_legacy_manifest():
     m.manifest_version = "1.0"
     with pytest.raises(AppaToolBindingError, match="unsupported_manifest_version"):
         make_binding(m)
+
+
+@pytest.mark.parametrize("field,value", [
+    ("manifest_id", " "), ("action_id", ""), ("adapter_id", " "),
+    ("targets", [" "]), ("targets", ["refund.sqlite", "refund.sqlite"]),
+    ("required", ["amount", "amount", "recipient"]),
+    ("optional", ["amount"]), ("forbidden", ["recipient"]),
+])
+def test_rejects_ambiguous_declarations(field, value):
+    m = fixture_manifest()
+    if field == "manifest_id": m.manifest_id = value
+    elif field == "action_id": m.actions[0].action_id = value
+    elif field == "adapter_id": m.tools[0].adapter_id = value
+    elif field == "targets": m.actions[0].target_policy.allowed_targets = value
+    else: setattr(m.actions[0].payload_policy, field + "_fields", value)
+    with pytest.raises(AppaToolBindingError):
+        make_binding(m)
+
+
+@pytest.mark.parametrize("sinks", ["refund.sqlite", [" refund.sqlite"], ["refund.sqlite\n"]])
+def test_rejects_ambiguous_sink_input(sinks):
+    with pytest.raises(AppaToolBindingError):
+        make_binding(sinks=sinks)
+
+
+def test_rejects_duplicate_tool_identity():
+    m = fixture_manifest()
+    m.tools.append(m.tools[0].model_copy())
+    with pytest.raises(AppaToolBindingError):
+        make_binding(m)
+
+
+def test_binding_does_not_mutate_or_alias_manifest():
+    m = fixture_manifest()
+    before = m.model_dump()
+    binding = make_binding(m)
+    assert m.model_dump() == before
+    m.actions[0].target_policy.allowed_targets.append("other.sqlite")
+    assert binding.allowed_targets == ("refund.sqlite",)
+    record = binding.as_record()
+    record["allowed_targets"].append("another.sqlite")
+    assert binding.allowed_targets == ("refund.sqlite",)
+    assert binding.as_record()["authority_effect"] == "none"

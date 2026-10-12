@@ -18,6 +18,16 @@ class AppaToolBindingError(ValueError):
     """Declaration cannot be mapped to an unambiguous OpenAPPA tool."""
 
 
+def _identifier(value: object) -> bool:
+    """Reject ambiguous spellings without silently normalizing identities."""
+    return (isinstance(value, str) and bool(value) and value == value.strip()
+            and not any(ord(char) < 32 or ord(char) == 127 for char in value))
+
+
+def _unique_identifiers(values: list[str]) -> bool:
+    return all(_identifier(value) for value in values) and len(values) == len(set(values))
+
+
 @dataclass(frozen=True)
 class AppaToolBinding:
     profile: Literal["cognous-openappa-tool-binding/0.1"]
@@ -69,21 +79,37 @@ def build_appa_tool_binding(
     """
     if manifest.manifest_version != "1.1":
         raise AppaToolBindingError("unsupported_manifest_version")
-    if not appa_tool_name or not appa_tool_name.strip():
+    if not _identifier(appa_tool_name):
         raise AppaToolBindingError("missing_appa_tool_name")
+    if not _identifier(manifest.manifest_id) or not _identifier(action_id):
+        raise AppaToolBindingError("invalid_declaration_identity")
+    if not _unique_identifiers([a.action_id for a in manifest.actions]):
+        raise AppaToolBindingError("ambiguous_manifest_action_ids")
+    if not _unique_identifiers([t.tool_name for t in manifest.tools]):
+        raise AppaToolBindingError("ambiguous_manifest_tool_names")
     actions = [a for a in manifest.actions if a.action_id == action_id]
     if len(actions) != 1:
         raise AppaToolBindingError("unknown_or_ambiguous_action_id")
     action = actions[0]
     tools = [t for t in manifest.tools if t.tool_name == action.tool_name]
-    if len(tools) != 1 or not tools[0].allowed or not tools[0].adapter_id:
+    if len(tools) != 1 or not tools[0].allowed or not _identifier(tools[0].adapter_id):
         raise AppaToolBindingError("missing_or_disallowed_adapter")
     if action.target_policy is None or action.target_policy.allow_any_target:
         raise AppaToolBindingError("unbounded_targets")
     if not action.target_policy.allowed_targets:
         raise AppaToolBindingError("missing_targets")
+    if not _unique_identifiers(action.target_policy.allowed_targets):
+        raise AppaToolBindingError("invalid_or_duplicate_targets")
     if action.payload_policy is None:
         raise AppaToolBindingError("missing_payload_contract")
+    policy = action.payload_policy
+    if not all(_unique_identifiers(fields) for fields in
+               (policy.required_fields, policy.optional_fields, policy.forbidden_fields)):
+        raise AppaToolBindingError("invalid_or_duplicate_payload_fields")
+    if set(policy.required_fields) & set(policy.optional_fields):
+        raise AppaToolBindingError("contradictory_payload_contract")
+    if not isinstance(parameter_roles, dict):
+        raise AppaToolBindingError("invalid_parameter_roles")
     declared = set(action.payload_policy.required_fields) | set(action.payload_policy.optional_fields)
     forbidden = set(action.payload_policy.forbidden_fields)
     if declared & forbidden:
@@ -91,9 +117,9 @@ def build_appa_tool_binding(
     if set(parameter_roles) != declared:
         raise AppaToolBindingError("incomplete_parameter_roles")
     roles = {"content", "recipient", "resource", "command", "control"}
-    if any(role not in roles for role in parameter_roles.values()):
+    if any(not isinstance(role, str) or role not in roles for role in parameter_roles.values()):
         raise AppaToolBindingError("unknown_parameter_role")
-    if not sinks or any(not isinstance(sink, str) or not sink.strip() for sink in sinks):
+    if not isinstance(sinks, list) or not sinks or any(not _identifier(sink) for sink in sinks):
         raise AppaToolBindingError("missing_or_invalid_sinks")
     if len(sinks) != len(set(sinks)):
         raise AppaToolBindingError("duplicate_sink")

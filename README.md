@@ -23,6 +23,14 @@ A lightweight format, Python validator and CLI for describing the actions an AI 
 
 **Implementation status:** this README describes merged public reference work. Component acceptance, selection in the hub and execution of a qualification are separate facts. The selected revision for this component is `46c950bed37fe3812000895430bc0312d29e37ce`; the [hub lock](https://github.com/cogno-us/cognous-open-control-stack/blob/5737267d94d2b445735c95e8480a31de73a2abe8/component-lock.json) is the source of that integration choice.
 
+## Current selection, historical evidence and a bounded example
+
+**Current selected hub revision:** `46c950bed37fe3812000895430bc0312d29e37ce` ([live component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json)). **Accepted repository source revision:** `8d1572d4f926c968a8704cb912a6e9d49166f74a`. These are distinct: a newer owning-repository merge or synthetic test is not automatically selected in the hub. The earlier hub checkout `5737267d...` and selected SHA below refer to a **historical evidence generation**, not current selection. Preserve its original counts and limitations. See [hub release status](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/release-status.md) and [Start here](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/start-here.md).
+
+**Synthetic example:** A Manifest describes a synthetic refund action, but it cannot authorize an attempt. The Control Plane must bind the exact action, target, payload and requested permissions to current independently resolved authority.
+
+Operational deployment trust is still [HOLD under orchestrator #30](https://github.com/cogno-us/cognous-stack-orchestrator/issues/30). No signature, evidence package, successful test or source merge creates a production grant, proves external settlement, or changes selected release authority.
+
 ## Purpose and intended users
 
 A tool name is not a sufficient policy boundary. The same integration can read information, draft a message, issue a payment or delete a record. Reviewers need an explicit action inventory and developers need stable identifiers and constraints that survive handoff to runtime control.
