@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added E022 (`missing_effect_limits`): non-blocked effectful v1.1 actions must declare explicit `effect_limits`; the docs now describe it as required, and state that the Python models are not a schema-conformance check.
 - Added backward-compatible manifest v1.1 runtime-consumption profile with stable action and adapter identities.
 - Added finite target/effect declarations and reference-only Alvorada Authority Context 0.1.0 mappings.
 - Added canonical manifest, payload, and full-proposal commitments plus deterministic declaration matching; these do not authorize execution.
