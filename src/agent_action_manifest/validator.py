@@ -155,7 +155,7 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
         # 7. external_send must have authority unless blocked
         if (
             action.action_type == ActionType.external_send
-            and not action.authority_required
+            and not any(item.required and item.scope.strip() for item in action.authority_required)
             and effective_default != DefaultAction.block
         ):
             issues.append(
@@ -171,7 +171,7 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
         # 8. write/delete/purchase/approve must have authority unless blocked
         if (
             action.action_type in {ActionType.write, ActionType.delete, ActionType.purchase, ActionType.approve}
-            and not action.authority_required
+            and not any(item.required and item.scope.strip() for item in action.authority_required)
             and effective_default != DefaultAction.block
         ):
             issues.append(
@@ -260,7 +260,7 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
             effective_default == DefaultAction.allow
             and action.action_type in high_risk_types
         ):
-            missing_authority = not action.authority_required
+            missing_authority = not any(item.required and item.scope.strip() for item in action.authority_required)
             review_mode = (
                 action.review_requirement.mode
                 if action.review_requirement

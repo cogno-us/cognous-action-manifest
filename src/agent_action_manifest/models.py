@@ -7,7 +7,31 @@ from __future__ import annotations
 from enum import Enum
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel as PydanticBaseModel, ConfigDict, Field, model_validator
+import math
+
+
+class BaseModel(PydanticBaseModel):
+    # Unknown policy/tenant fields must fail instead of disappearing.
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_nonfinite(cls, value):
+        stack = [(value, 0)]
+        count = 0
+        while stack:
+            item, depth = stack.pop()
+            count += 1
+            if count > 100000 or depth > 32:
+                raise ValueError("manifest structural budget exceeded")
+            if isinstance(item, float) and not math.isfinite(item):
+                raise ValueError("nonfinite manifest value")
+            if isinstance(item, dict):
+                stack.extend((child, depth + 1) for child in item.values())
+            elif isinstance(item, (list, tuple)):
+                stack.extend((child, depth + 1) for child in item)
+        return value
 
 
 class ActionType(str, Enum):

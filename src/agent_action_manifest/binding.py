@@ -48,6 +48,9 @@ def resolve_action(manifest: AgentActionManifest, action_id: str) -> ToolAction 
 def proposal_mismatches(manifest: AgentActionManifest, proposal: RuntimeActionProposal) -> list[str]:
     """Return deterministic declaration mismatches only, never authorization."""
     mismatches: list[str] = []
+    from .validator import validate_manifest
+    if not validate_manifest(manifest).valid:
+        mismatches.append("invalid_manifest")
 
     if manifest.manifest_version not in SUPPORTED_RUNTIME_MANIFEST_VERSIONS:
         mismatches.append("unsupported_manifest_version")
