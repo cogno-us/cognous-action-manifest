@@ -6,10 +6,19 @@ Entry point: aam
 
 from __future__ import annotations
 
+import builtins
 import glob as _glob
 import json
 import sys
 from pathlib import Path
+
+
+def print(*values, **kwargs):
+    """Render untrusted CLI content without terminal escape/control execution."""
+    def escaped(value):
+        return ''.join(c if (ord(c) >= 32 and not 127 <= ord(c) <= 159)
+                       else f"\\u{ord(c):04x}" for c in str(value))
+    builtins.print(*(escaped(value) for value in values), **kwargs)
 
 
 def _load_or_exit(path_str: str):
