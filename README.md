@@ -23,11 +23,11 @@
 
 A lightweight format, Python validator and CLI for describing the actions an AI agent may propose. Manifest 1.1 adds deterministic runtime bindings so a downstream controller can compare a proposal with a specific declared action.
 
-**Implementation status:** this README describes merged public reference work. Component acceptance, selection in the hub and execution of a qualification are separate facts. The selected revision for this component is `46c950bed37fe3812000895430bc0312d29e37ce`; the [hub lock](https://github.com/cogno-us/cognous-open-control-stack/blob/5737267d94d2b445735c95e8480a31de73a2abe8/component-lock.json) is the source of that integration choice.
+**Implementation status:** public reference work. The [current component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) defines the selected integration; a component merge does not automatically change that selection or approve deployment.
 
-## Current selection, historical evidence and a bounded example
+## Selection and example
 
-**Current selected hub revision:** `46c950bed37fe3812000895430bc0312d29e37ce` ([live component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json)). **Accepted repository source revision:** `8d1572d4f926c968a8704cb912a6e9d49166f74a`. These are distinct: a newer owning-repository merge or synthetic test is not automatically selected in the hub. The earlier hub checkout `5737267d...` and selected SHA below refer to a **historical evidence generation**, not current selection. Preserve its original counts and limitations. See [hub release status](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/release-status.md) and [Start here](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/start-here.md).
+Use the [current component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) for integration selection and the [central test hub](https://github.com/cogno-us/cognous-stack-qualification/blob/main/results/readme-commentary/index.md) for revision-specific qualification commentary. Source acceptance, selection and deployment approval remain separate decisions.
 
 **Synthetic example:** A Manifest describes a synthetic refund action, but it cannot authorize an attempt. The Control Plane must bind the exact action, target, payload and requested permissions to current independently resolved authority.
 
@@ -66,11 +66,11 @@ aam summarize examples/customer_service_agent.manifest.json
 aam check-examples
 ```
 
-## Evidence and supported scope
+## Scope and compatibility
 
-The hub selects Manifest 1.1 at `46c950bed37fe3812000895430bc0312d29e37ce`. The package version and the runtime consumption profile are different version axes. The bounded refund fixture is integration evidence; the other domain examples demonstrate declaration structure, not deployed sector assurance.
+Use the [current component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) for the selected revision. The package version and the runtime consumption profile are different version axes. The bounded refund fixture is integration evidence; the other domain examples demonstrate declaration structure, not deployed sector assurance.
 
-The accepted [hub persistence-generation evidence](https://github.com/cogno-us/cognous-open-control-stack/blob/5737267d94d2b445735c95e8480a31de73a2abe8/examples/control-plane-store-adoption/qualification-summary.json) records 915 Python tests in each of two repetitions, 35 matrix entries satisfying their gates and 120 separate mocked OpenShell tests. Those are aggregate hub results, not a per-component test count or a claim of production readiness. Optional behavioral layers receive static checks only. The [support ledger](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/release-status.md) separates implementation, execution and adoption.
+Test results, run commentary and historical qualification records are maintained in the [central test hub](https://github.com/cogno-us/cognous-stack-qualification/blob/main/results/readme-commentary/index.md). Read them against their recorded source revisions; source selection and deployment approval are separate decisions.
 
 ## Limitations and deployment decisions
 
@@ -138,3 +138,7 @@ execution authority.
 ## Repository locations
 
 See the [repository rename map and compatibility notes](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/repository-renames.md) for current component URLs. Existing package names, schema identifiers and retained producer identities are unchanged.
+
+<!-- Retained anchors for existing documentation links. -->
+<a id="current-selection-historical-evidence-and-a-bounded-example"></a>
+<a id="evidence-and-supported-scope"></a>
