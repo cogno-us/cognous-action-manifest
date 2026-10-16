@@ -145,3 +145,21 @@ def test_proposal_digest_changes_when_bound_actor_changes():
     before = proposal_digest(proposal)
     proposal.actor = "urn:cognous:actor:substituted-agent"
     assert proposal_digest(proposal) != before
+
+
+def test_v11_validator_rejects_missing_effect_limits():
+    manifest = load_manifest(FIXTURE)
+    data = deepcopy(manifest.model_dump(mode="json"))
+    data["actions"][0]["effect_limits"] = None
+    changed = AgentActionManifest.model_validate(data)
+    report = validate_manifest(changed)
+    assert report.valid is False
+    codes = {(i.code, i.alias) for i in report.issues}
+    assert ("E022", "missing_effect_limits") in codes
+    proposal = _proposal(changed)
+    proposal.manifest_digest = manifest_digest(changed)
+    proposal.amount = 10_000_000
+    proposal.effects = 1_000
+    mismatches = proposal_mismatches(changed, proposal)
+    assert mismatches != []
+    assert "invalid_manifest" in mismatches

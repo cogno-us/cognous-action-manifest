@@ -25,6 +25,12 @@ A v1.1 action declaration carries stable `action_id`, stable tool
 reference-only `authority_context` requirements, alongside existing payload,
 review, reliance, authority-scope, and redaction declarations.
 
+For non-blocked effectful actions, `target_policy`, `authority_context` and
+`effect_limits` are required, not recommended: `validate_manifest` reports
+E020, E021 or E022 when they are missing, and `proposal_mismatches` reports
+`invalid_manifest`. A missing `effect_limits` is not treated as an unbounded
+envelope.
+
 A consumer must reject unsupported manifest versions rather than silently coercing
 them. v1.0 remains loadable and valid for backward compatibility, but it is not
 the runtime-consumption profile defined here.

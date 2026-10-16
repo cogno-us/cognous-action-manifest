@@ -162,8 +162,26 @@ Additional v1.1 action fields:
 | `action_id` | string | yes | Stable action identifier |
 | tool `adapter_id` | string | yes | Stable runtime adapter identity |
 | `target_policy` | object | effectful actions | Finite allowed target set |
-| `effect_limits` | object | recommended | Maximum amount/unit/effect count |
+| `effect_limits` | object | effectful actions | Explicit maximum amount/unit/effect count |
 | `authority_context` | object | effectful actions | Reference-only Authority Context mapping |
+
+"Effectful actions" means `write`, `external_send`, `delete`, `export`,
+`purchase` and `approve` actions whose effective `default_action` is not
+`block`. For those actions `validate_manifest` reports E020
+(`unbounded_target_policy`), E021 (`missing_authority_context`) or E022
+(`missing_effect_limits`) when the field is absent, and `proposal_mismatches`
+then reports `invalid_manifest`. Absent `effect_limits` is never read as
+"unbounded".
 
 See [Runtime consumption contract](runtime_consumption_contract.md) for exact
 binding and migration semantics.
+
+## Python models are not a schema-conformance check
+
+The published JSON schemas under `schemas/` are stricter than the Python
+models. Loading a document into the Pydantic models and passing
+`validate_manifest` does not show that it conforms to those schemas; for
+example, the models do not enforce every identifier, digest, version-pin and
+uniqueness constraint the schemas express. Consumers that need schema
+conformance should validate the JSON document against the published schema
+separately.
