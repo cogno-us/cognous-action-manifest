@@ -126,6 +126,8 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
                     issues.append(_error("E020", f"Action '{action.action_name}' must declare a finite target_policy in v1.1.", f"{path_prefix}.target_policy", alias="unbounded_target_policy"))
                 if action.authority_context is None:
                     issues.append(_error("E021", f"Action '{action.action_name}' must reference Authority Context requirements in v1.1.", f"{path_prefix}.authority_context", alias="missing_authority_context"))
+                if action.effect_limits is None:
+                    issues.append(_error("E022", f"Action '{action.action_name}' must declare explicit effect_limits in v1.1.", f"{path_prefix}.effect_limits", alias="missing_effect_limits"))
 
         # 6. every ToolAction.tool_name must reference a declared ToolDefinition.tool_name
         if action.tool_name not in declared_tool_names:
