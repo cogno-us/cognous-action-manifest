@@ -16,6 +16,7 @@ def _no_umask(monkeypatch):
 
 @pytest.mark.parametrize("process_umask", [0o000, 0o022, 0o077, 0o277])
 def test_new_file_gets_private_mode_regardless_of_umask(tmp_path, process_umask):
+    (tmp_path / "sub").mkdir()  # created before the umask is set so the directory stays writable
     old = os.umask(process_umask)
     try:
         target = tmp_path / "sub" / "m.json"
