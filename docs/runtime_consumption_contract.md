@@ -29,7 +29,8 @@ For non-blocked effectful actions, `target_policy`, `authority_context` and
 `effect_limits` are required, not recommended: `validate_manifest` reports
 E020, E021 or E022 when they are missing, and `proposal_mismatches` reports
 `invalid_manifest`. A missing `effect_limits` is not treated as an unbounded
-envelope. Present `effect_limits` must also be usable: a non-null `max_amount`
+envelope: an action without declared limits has an implicit ceiling of amount 0
+and one effect (see `proposal_mismatches()` below). Present `effect_limits` must also be usable: a non-null `max_amount`
 and a non-empty `unit`, or `max_amount` 0 as an explicit non-monetary mode
 (E023, `incomplete_effect_limits`). An empty `{}` or a null `max_amount` no
 longer passes validation; the JSON Schema (`schemas/agent_action_manifest.schema.json`,
@@ -65,7 +66,13 @@ matching, not proof that those permissions were actually granted.
 effective default is `block`, `missing_effect_limits` when the action declares
 no `effect_limits` and the proposal carries an amount above 0 or more than one
 effect, and `missing_amount_limit` when `effect_limits.max_amount` is absent and
-the amount is above 0.
+the amount is above 0. The implicit ceiling for an action with no declared
+`effect_limits` is amount 0 and one effect, matching the `EffectLimits` default
+`max_effects` of 1.
+
+The payload policy compares field names only; see "Payload policy checks field
+names, not values" in `manifest_format.md`. A payload field that selects a
+recipient, resource or amount must be carried as `target` or `amount`.
 
 ## Declaration matching is not authorization
 

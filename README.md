@@ -47,7 +47,7 @@ Engineers can inspect the reference contracts and examples; enterprise architect
 | **Governance requirements** | Declare authority, review and reliance requirements without issuing grants. |
 | **Payload handling** | Describe sensitive fields and redaction hints for downstream record handling. |
 | **Runtime binding** | Bind stable action and adapter IDs, finite targets, effect limits and Authority Context references under the 1.1 profile. |
-| **Validation and inspection** | Use Pydantic models, JSON schemas and the aam CLI to validate, summarize and list actions. The Python models are not a schema-conformance check; the published JSON schemas are stricter. |
+| **Validation and inspection** | Use Pydantic models, JSON schemas and the aam CLI to validate, summarize and list actions. The Python models are not a schema-conformance check, and the JSON schemas and the Python validator each check rules the other does not (see `docs/manifest_format.md`); a conforming consumer runs both. |
 
 ## How it works
 

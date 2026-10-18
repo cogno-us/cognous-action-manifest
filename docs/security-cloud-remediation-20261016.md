@@ -3,6 +3,8 @@
 Scan: https://chatgpt.com/codex/cloud/security/runs/wfr_c0b32cbd56ce15d30ad6bc205f39363591aaec580e5196bfa1ba8d5e64892746
 Scanned/base revision: `6789b0768eb64596df614d0fee6c5d04fa876e8f`.
 
+Status update (2026-10-18): the corrections below are merged in `f9ae8527` (#20: `extra="forbid"`, nonfinite rejection, CLI escaping, each with tests); the suite was 159 tests at that head and later hardening is in #21. The text below is the original proposal, kept as written; owner disposition of each finding is not recorded here.
+
 Reject unknown policy/tenant fields, nonfinite limits and metadata; require mandatory authority; reject invalid declarations during binding; visibly escape terminal control bytes. Historical 1.1 stays tenant-unaware and now rejects tenant-bearing input instead of silently discarding it.
 
 ## Finding coverage
