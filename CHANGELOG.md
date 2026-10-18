@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Changed - input validation hardening (fix round 2)
+- `proposal_mismatches` reports `action_blocked`, `missing_effect_limits` and `missing_amount_limit`.
+- The shared structure walker refuses unpaired surrogates in strings and dictionary keys.
+- `dump_manifest` creates new files with fixed mode 0600 via `os.open` and no longer reads or sets the process umask; existing files keep their mode.
+- JSON schema: non-blank `manifest_version`/`manifest_id`/`agent_name`/`field_path`, supported `manifest_version` values, v1.1 `action_id`, finite `target_policy` and `authority_context` for effectful non-blocked actions, `reviewer_role` for `approval_required`. `EffectLimits.max_amount` and `max_effects` no longer coerce strings or booleans.
+- Added a schema-versus-validator parity test with its known differences listed.
+
 ### Fixed — scan remediation (stream C, manifest)
 - v1.1 validator: effectful, non-blocked actions need `effect_limits` with a non-null `max_amount` and a non-empty `unit`, or `max_amount` 0 as an explicit non-monetary mode (new E023 `incomplete_effect_limits`). Schema (`$defs/effect_limits_v1_1`) and docs aligned. An empty `effect_limits` object that previously validated is now invalid.
 - `dump_manifest` encodes before opening a file and replaces atomically; unencodable text raises `ValueError` and leaves the existing file intact.

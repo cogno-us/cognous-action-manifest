@@ -165,9 +165,9 @@ class TargetPolicy(BaseModel):
 
 
 class EffectLimits(BaseModel):
-    max_amount: float | None = Field(default=None, ge=0, description="Maximum numeric amount for one proposed effect.")
+    max_amount: float | None = Field(default=None, ge=0, strict=True, description="Maximum numeric amount for one proposed effect.")
     unit: str | None = Field(default=None, description="Unit associated with max_amount.")
-    max_effects: int = Field(default=1, ge=0, description="Maximum effects in one runtime proposal.")
+    max_effects: int = Field(default=1, ge=0, strict=True, description="Maximum effects in one runtime proposal.")
 
 
 class RedactionHint(BaseModel):

@@ -13,18 +13,22 @@
   "properties": {
     "manifest_version": {
       "type": "string",
-      "minLength": 1,
-      "description": "Schema version for this manifest."
+      "description": "Schema version for this manifest.",
+      "pattern": "\\S",
+      "enum": [
+        "1.0",
+        "1.1"
+      ]
     },
     "manifest_id": {
       "type": "string",
-      "minLength": 1,
-      "description": "Unique identifier for this manifest instance."
+      "description": "Unique identifier for this manifest instance.",
+      "pattern": "\\S"
     },
     "agent_name": {
       "type": "string",
-      "minLength": 1,
-      "description": "Name of the agent described by this manifest."
+      "description": "Name of the agent described by this manifest.",
+      "pattern": "\\S"
     },
     "agent_description": {
       "type": [
@@ -156,6 +160,36 @@
         }
       ],
       "description": "v1.1 effect_limits: non-null max_amount and a non-empty unit, or max_amount 0 (explicit non-monetary mode)."
+    },
+    "effectful_v1_1_requirements": {
+      "required": [
+        "effect_limits",
+        "authority_context",
+        "target_policy"
+      ],
+      "properties": {
+        "effect_limits": {
+          "$ref": "#/$defs/effect_limits_v1_1"
+        },
+        "authority_context": {
+          "type": "object"
+        },
+        "target_policy": {
+          "type": "object",
+          "required": [
+            "allowed_targets"
+          ],
+          "properties": {
+            "allow_any_target": {
+              "const": false
+            },
+            "allowed_targets": {
+              "minItems": 1
+            }
+          }
+        }
+      },
+      "description": "v1.1 effectful, non-blocked actions: finite target_policy (E020), authority_context (E021) and complete effect_limits (E022/E023)."
     }
   },
   "allOf": [
@@ -224,14 +258,7 @@
                 ]
               },
               "then": {
-                "required": [
-                  "effect_limits"
-                ],
-                "properties": {
-                  "effect_limits": {
-                    "$ref": "#/$defs/effect_limits_v1_1"
-                  }
-                }
+                "$ref": "#/$defs/effectful_v1_1_requirements"
               }
             }
           }
@@ -302,13 +329,35 @@
                 ]
               },
               "then": {
-                "required": [
-                  "effect_limits"
-                ],
-                "properties": {
-                  "effect_limits": {
-                    "$ref": "#/$defs/effect_limits_v1_1"
-                  }
+                "$ref": "#/$defs/effectful_v1_1_requirements"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "manifest_version": {
+            "const": "1.1"
+          }
+        },
+        "required": [
+          "manifest_version"
+        ]
+      },
+      "then": {
+        "properties": {
+          "actions": {
+            "items": {
+              "required": [
+                "action_id"
+              ],
+              "properties": {
+                "action_id": {
+                  "type": "string",
+                  "minLength": 1
                 }
               }
             }
