@@ -170,8 +170,11 @@ Additional v1.1 action fields:
 `block`. For those actions `validate_manifest` reports E020
 (`unbounded_target_policy`), E021 (`missing_authority_context`) or E022
 (`missing_effect_limits`) when the field is absent, and `proposal_mismatches`
-then reports `invalid_manifest`. Absent `effect_limits` is never read as
-"unbounded". Present `effect_limits` needs a non-null `max_amount` and a
+then reports `invalid_manifest`. For an action with no declared `effect_limits`
+(a blocked action, a read action, or any action `proposal_mismatches` is asked
+about directly) the helper applies an implicit ceiling of amount 0 and one
+effect, so a larger amount or more effects reports `missing_effect_limits`; it is
+never read as "unbounded". Present `effect_limits` needs a non-null `max_amount` and a
 non-empty `unit`, or `max_amount: 0` for an explicit non-monetary action;
 otherwise E023 (`incomplete_effect_limits`).
 
@@ -183,18 +186,35 @@ atomically. CLI output escapes control and other non-printable characters.
 See [Runtime consumption contract](runtime_consumption_contract.md) for exact
 binding and migration semantics.
 
-## Python models are not a schema-conformance check
+## Schemas and Python checks are complementary
 
-The published JSON schemas under `schemas/` are stricter than the Python
-models. Loading a document into the Pydantic models and passing
-`validate_manifest` does not show that it conforms to those schemas; for
-example, the models do not enforce every identifier, digest, version-pin and
-uniqueness constraint the schemas express. Consumers that need schema
-conformance should validate the JSON document against the published schema
-separately.
+The published JSON schemas under `schemas/` and the Python models with
+`validate_manifest` each check rules the other does not. Loading a document
+into the Pydantic models and passing `validate_manifest` does not show that it
+conforms to the schemas, and a schema-valid document is not necessarily valid
+under `validate_manifest`. A conforming consumer runs both.
+The schema does not express uniqueness (E004, E005, E017), references between
+collections (E006, E015, E019, non-empty `tools`), the array rules E007, E008,
+E009 and E011, or E014. `validate_manifest` does not express every pattern
+constraint the schemas carry.
 
 `tests/test_schema_validator_parity.py` runs a fixture corpus through both. The
 schema and the Python validator agree on every case except the rules a JSON
 schema cannot express (uniqueness across items, references between
 collections, existence and overlap rules over arrays); those cases are listed
-in the test as known differences.
+in the test as known differences. Cheap gaps found by that test are closed
+(blank ids, an unsupported `manifest_version`, `approval_required` without a
+`reviewer_role`, v1.1 declarations missing `action_id`, E020 and E021 under the
+schema, strict numbers in `effect_limits`); the differences that remain are the
+ones listed above.
+
+## Payload policy checks field names, not values
+
+`payload_policy` is a list of field names. `proposal_mismatches` compares the
+proposal's payload keys with `required_fields`, `optional_fields` and
+`forbidden_fields`; it does not look at any value. A payload field that selects a
+recipient, a resource or an amount must therefore be expressed as the action's
+`target` or `amount` (or declared as constrained by the consuming profile); a
+payload field with an in-scope name and a wrong value passes this check, and a
+later tier cannot catch it from the manifest alone. A per-field value
+constraint is a freeze-list item, not part of this contract.

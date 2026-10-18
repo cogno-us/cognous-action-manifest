@@ -22,7 +22,7 @@ A tenant-only substitution therefore changes the proposal commitment and cannot 
 
 ## C6 declaration projection
 The Manifest owns only the declaration-side exact projection:
-`action_id + adapter_id + target + payload/parameter roles + tenant_id + profile generation`.
+`action_id + adapter_id + target + payload/parameter roles + tenant_id`; a profile generation label is not carried yet (W1).
 
 Optional flow/result-admission profiles may add source/sink/recipient/parameter role declarations, but:
 - they cannot weaken the C1 required fields;
@@ -35,5 +35,5 @@ OpenAPPA PR #10 remains an unaccepted optional proposal and is not part of this 
 ## Compatibility
 - 1.1 decoders continue to decode historical 1.1 artifacts.
 - 1.2 requires `tenant_id`; no default/backfill is permitted.
-- A 1.1 artifact cannot be relabeled 1.2 or claim tenant-aware assurance.
+- A 1.1 artifact cannot claim tenant-aware assurance: 1.2 is distinguished from 1.1 only by the required `tenant_id` (required in 1.2, refused in 1.1); no generation label is carried yet.
 - W1 owns implementation of producer validation/persistence. W4 owns any OpenAPPA-specific projection implementation.

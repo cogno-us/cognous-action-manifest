@@ -1,6 +1,6 @@
 # Example Manifests
 
-This repository includes four example manifests that demonstrate common agent scenarios. All examples validate with no errors and no warnings.
+This repository includes five example manifests (four v1.0 scenarios and the v1.1 refund integration) that demonstrate common agent scenarios; `aam check-examples` validates all five. All examples validate with no errors and no warnings.
 
 ---
 
