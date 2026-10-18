@@ -6,19 +6,21 @@ Entry point: aam
 
 from __future__ import annotations
 
-import builtins
 import glob as _glob
-import json
 import sys
 from pathlib import Path
 
 
-def print(*values, **kwargs):
-    """Render untrusted CLI content without terminal escape/control execution."""
-    def escaped(value):
-        return ''.join(c if (ord(c) >= 32 and not 127 <= ord(c) <= 159)
-                       else f"\\u{ord(c):04x}" for c in str(value))
-    builtins.print(*(escaped(value) for value in values), **kwargs)
+def _t(value) -> str:
+    """Escape untrusted text (names, ids, messages, paths) before it reaches a terminal or CI log.
+
+    Control, format and other non-printable characters (CR, LF, NUL, ESC, bidi overrides, U+2028) become ``\\xNN``/``\\uNNNN``
+    escapes, so a manifest value cannot forge a line or an ANSI sequence. Fixed layout text (newlines in the CLI's own format
+    strings) is not passed through here, so it keeps its line breaks.
+    """
+    return "".join(
+        c if c.isprintable() else (f"\\x{ord(c):02x}" if ord(c) < 256 else f"\\u{ord(c):04x}") for c in str(value)
+    )
 
 
 def _load_or_exit(path_str: str):
@@ -28,7 +30,7 @@ def _load_or_exit(path_str: str):
     try:
         return load_manifest(path_str)
     except ManifestLoadError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        print(f"Error: {_t(exc)}", file=sys.stderr)
         sys.exit(2)
 
 
@@ -45,7 +47,7 @@ def _cmd_validate(args: list[str]) -> int:
 
     status = "VALID" if report.valid else "INVALID"
     print(f"Validation result: {status}")
-    print(f"Manifest ID:       {report.manifest_id}")
+    print(f"Manifest ID:       {_t(report.manifest_id)}")
 
     errors = [i for i in report.issues if i.severity.value == "error"]
     warnings = [i for i in report.issues if i.severity.value == "warning"]
@@ -53,14 +55,14 @@ def _cmd_validate(args: list[str]) -> int:
     if errors:
         print(f"\nErrors ({len(errors)}):")
         for issue in errors:
-            loc = f" [{issue.path}]" if issue.path else ""
-            print(f"  [{issue.code}]{loc} {issue.message}")
+            loc = f" [{_t(issue.path)}]" if issue.path else ""
+            print(f"  [{_t(issue.code)}]{loc} {_t(issue.message)}")
 
     if warnings:
         print(f"\nWarnings ({len(warnings)}):")
         for issue in warnings:
-            loc = f" [{issue.path}]" if issue.path else ""
-            print(f"  [{issue.code}]{loc} {issue.message}")
+            loc = f" [{_t(issue.path)}]" if issue.path else ""
+            print(f"  [{_t(issue.code)}]{loc} {_t(issue.message)}")
 
     if not report.issues:
         print("No issues found.")
@@ -99,9 +101,9 @@ def _cmd_summarize(args: list[str]) -> int:
         if a.payload_policy and a.payload_policy.sensitive_fields
     )
 
-    print(f"Manifest ID:          {manifest.manifest_id}")
-    print(f"Agent name:           {manifest.agent_name}")
-    print(f"Environment:          {manifest.environment}")
+    print(f"Manifest ID:          {_t(manifest.manifest_id)}")
+    print(f"Agent name:           {_t(manifest.agent_name)}")
+    print(f"Environment:          {_t(manifest.environment)}")
     print(f"Tools:                {len(manifest.tools)}")
     print(f"Actions:              {len(manifest.actions)}")
 
@@ -129,8 +131,8 @@ def _cmd_list_actions(args: list[str]) -> int:
     manifest = _load_or_exit(args[0])
 
     col_widths = {
-        "action_name": max((len(a.action_name) for a in manifest.actions), default=11),
-        "tool_name": max((len(a.tool_name) for a in manifest.actions), default=9),
+        "action_name": max((len(_t(a.action_name)) for a in manifest.actions), default=11),
+        "tool_name": max((len(_t(a.tool_name)) for a in manifest.actions), default=9),
         "action_type": max((len(a.action_type.value) for a in manifest.actions), default=11),
         "posture": 8,
         "authority": 12,
@@ -153,15 +155,15 @@ def _cmd_list_actions(args: list[str]) -> int:
 
     for action in manifest.actions:
         effective = (action.default_action or manifest.default_action).value
-        scopes = ", ".join(a.scope for a in action.authority_required) or "(none)"
+        scopes = _t(", ".join(a.scope for a in action.authority_required) or "(none)")
         review = (
             action.review_requirement.mode.value
             if action.review_requirement
             else "none"
         )
         row = (
-            f"{action.action_name:<{col_widths['action_name']}}  "
-            f"{action.tool_name:<{col_widths['tool_name']}}  "
+            f"{_t(action.action_name):<{col_widths['action_name']}}  "
+            f"{_t(action.tool_name):<{col_widths['tool_name']}}  "
             f"{action.action_type.value:<{col_widths['action_type']}}  "
             f"{effective:<{col_widths['posture']}}  "
             f"{scopes:<30}  "
@@ -188,20 +190,20 @@ def _cmd_check_examples(args: list[str]) -> int:
         try:
             manifest = load_manifest(fpath)
         except ManifestLoadError as exc:
-            print(f"LOAD ERROR  {fpath}: {exc}")
+            print(f"LOAD ERROR  {_t(fpath)}: {_t(exc)}")
             all_valid = False
             continue
 
         report = validate_manifest(manifest)
         errors = [i for i in report.issues if i.severity.value == "error"]
         if errors:
-            print(f"INVALID     {fpath} ({len(errors)} error(s))")
+            print(f"INVALID     {_t(fpath)} ({len(errors)} error(s))")
             for issue in errors:
-                print(f"  [{issue.code}] {issue.message}")
+                print(f"  [{_t(issue.code)}] {_t(issue.message)}")
             all_valid = False
         else:
             warnings = [i for i in report.issues if i.severity.value == "warning"]
-            print(f"VALID       {fpath} ({len(warnings)} warning(s))")
+            print(f"VALID       {_t(fpath)} ({len(warnings)} warning(s))")
 
     return 0 if all_valid else 1
 
@@ -232,7 +234,7 @@ def main() -> None:
     }
 
     if command not in commands:
-        print(f"Unknown command: '{command}'", file=sys.stderr)
+        print(f"Unknown command: '{_t(command)}'", file=sys.stderr)
         print(f"Available commands: {', '.join(commands)}", file=sys.stderr)
         sys.exit(2)
 

@@ -29,7 +29,11 @@ For non-blocked effectful actions, `target_policy`, `authority_context` and
 `effect_limits` are required, not recommended: `validate_manifest` reports
 E020, E021 or E022 when they are missing, and `proposal_mismatches` reports
 `invalid_manifest`. A missing `effect_limits` is not treated as an unbounded
-envelope.
+envelope. Present `effect_limits` must also be usable: a non-null `max_amount`
+and a non-empty `unit`, or `max_amount` 0 as an explicit non-monetary mode
+(E023, `incomplete_effect_limits`). An empty `{}` or a null `max_amount` no
+longer passes validation; the JSON Schema (`schemas/agent_action_manifest.schema.json`,
+`$defs/effect_limits_v1_1`) states the same rule.
 
 A consumer must reject unsupported manifest versions rather than silently coercing
 them. v1.0 remains loadable and valid for backward compatibility, but it is not

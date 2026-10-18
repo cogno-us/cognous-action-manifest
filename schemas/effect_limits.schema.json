@@ -5,8 +5,24 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "max_amount": {"type":["number","null"],"minimum":0},
-    "unit": {"type":["string","null"]},
-    "max_effects": {"type":"integer","minimum":0,"default":1}
-  }
+    "max_amount": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "unit": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "max_effects": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 1
+    }
+  },
+  "description": "Declared amount/effect limits. v1.0 accepts any shape here; the v1.1 consumption profile additionally requires, for effectful non-blocked actions, a non-null max_amount and a non-empty unit (or max_amount 0 as an explicit non-monetary mode); see the $defs/effect_limits_v1_1 rule in agent_action_manifest.schema.json and validator code E023."
 }

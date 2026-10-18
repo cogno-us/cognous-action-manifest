@@ -128,6 +128,12 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
                     issues.append(_error("E021", f"Action '{action.action_name}' must reference Authority Context requirements in v1.1.", f"{path_prefix}.authority_context", alias="missing_authority_context"))
                 if action.effect_limits is None:
                     issues.append(_error("E022", f"Action '{action.action_name}' must declare explicit effect_limits in v1.1.", f"{path_prefix}.effect_limits", alias="missing_effect_limits"))
+                else:
+                    limits = action.effect_limits
+                    has_unit = limits.unit is not None and limits.unit.strip() != ""
+                    non_monetary = limits.max_amount == 0  # explicit non-monetary mode: amount 0, no unit needed
+                    if limits.max_amount is None or not (has_unit or non_monetary):
+                        issues.append(_error("E023", f"Action '{action.action_name}' must declare effect_limits with a non-null max_amount and a non-empty unit (or max_amount 0 for a non-monetary action) in v1.1.", f"{path_prefix}.effect_limits", alias="incomplete_effect_limits"))
 
         # 6. every ToolAction.tool_name must reference a declared ToolDefinition.tool_name
         if action.tool_name not in declared_tool_names:

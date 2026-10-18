@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Fixed — scan remediation (stream C, manifest)
+- v1.1 validator: effectful, non-blocked actions need `effect_limits` with a non-null `max_amount` and a non-empty `unit`, or `max_amount` 0 as an explicit non-monetary mode (new E023 `incomplete_effect_limits`). Schema (`$defs/effect_limits_v1_1`) and docs aligned. An empty `effect_limits` object that previously validated is now invalid.
+- `dump_manifest` encodes before opening a file and replaces atomically; unencodable text raises `ValueError` and leaves the existing file intact.
+- `load_manifest` turns non-UTF-8 bytes and over-deep nesting into `ManifestLoadError` and refuses files over `MAX_MANIFEST_BYTES` (4 MiB).
+- CLI escapes non-printable characters in untrusted values (`isprintable`, `\xNN`/`\uNNNN`) and no longer escapes its own line breaks.
+- Removed the tracked build artefacts (`*.egg-info`, `__pycache__`); added `.gitignore`.
+
 - Added E022 (`missing_effect_limits`): non-blocked effectful v1.1 actions must declare explicit `effect_limits`; the docs now describe it as required, and state that the Python models are not a schema-conformance check.
 - Added backward-compatible manifest v1.1 runtime-consumption profile with stable action and adapter identities.
 - Added finite target/effect declarations and reference-only Alvorada Authority Context 0.1.0 mappings.

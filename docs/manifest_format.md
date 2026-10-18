@@ -171,7 +171,14 @@ Additional v1.1 action fields:
 (`unbounded_target_policy`), E021 (`missing_authority_context`) or E022
 (`missing_effect_limits`) when the field is absent, and `proposal_mismatches`
 then reports `invalid_manifest`. Absent `effect_limits` is never read as
-"unbounded".
+"unbounded". Present `effect_limits` needs a non-null `max_amount` and a
+non-empty `unit`, or `max_amount: 0` for an explicit non-monetary action;
+otherwise E023 (`incomplete_effect_limits`).
+
+Loading is bounded: `load_manifest` refuses files over `MAX_MANIFEST_BYTES`
+(4 MiB), non-UTF-8 bytes and deeply nested documents with `ManifestLoadError`.
+`dump_manifest` encodes before opening any file and replaces the target
+atomically. CLI output escapes control and other non-printable characters.
 
 See [Runtime consumption contract](runtime_consumption_contract.md) for exact
 binding and migration semantics.
