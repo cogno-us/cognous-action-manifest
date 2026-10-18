@@ -9,6 +9,10 @@ from typing import Literal
 
 from pydantic import BaseModel as PydanticBaseModel, ConfigDict, Field, model_validator
 import math
+import re
+
+# Any code point in this range is an unpaired surrogate in a Python str and cannot be encoded as UTF-8.
+_SURROGATE = re.compile("[\ud800-\udfff]")
 
 
 class BaseModel(PydanticBaseModel):
@@ -27,7 +31,12 @@ class BaseModel(PydanticBaseModel):
                 raise ValueError("manifest structural budget exceeded")
             if isinstance(item, float) and not math.isfinite(item):
                 raise ValueError("nonfinite manifest value")
+            if isinstance(item, str) and _SURROGATE.search(item):
+                raise ValueError("manifest text contains an unpaired surrogate")
             if isinstance(item, dict):
+                for key in item:
+                    if isinstance(key, str) and _SURROGATE.search(key):
+                        raise ValueError("manifest text contains an unpaired surrogate")
                 stack.extend((child, depth + 1) for child in item.values())
             elif isinstance(item, (list, tuple)):
                 stack.extend((child, depth + 1) for child in item)

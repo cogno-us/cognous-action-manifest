@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 
-from .models import AgentActionManifest, RuntimeActionProposal, ToolAction
+from .models import AgentActionManifest, DefaultAction, RuntimeActionProposal, ToolAction
 
 SUPPORTED_RUNTIME_MANIFEST_VERSIONS = {"1.1"}
 
@@ -95,11 +95,21 @@ def proposal_mismatches(manifest: AgentActionManifest, proposal: RuntimeActionPr
         if keys - required - optional:
             mismatches.append("undeclared_payload_field")
 
-    if action.effect_limits is not None:
+    if (action.default_action or manifest.default_action) == DefaultAction.block:
+        mismatches.append("action_blocked")
+
+    if action.effect_limits is None:
+        # No declared limits: only the implicit single effect with no amount is within the declaration.
+        if proposal.amount > 0 or proposal.effects > 1:
+            mismatches.append("missing_effect_limits")
+    else:
         limits = action.effect_limits
         if proposal.effects > limits.max_effects:
             mismatches.append("effect_count_exceeded")
-        if limits.max_amount is not None and proposal.amount > limits.max_amount:
+        if limits.max_amount is None:
+            if proposal.amount > 0:
+                mismatches.append("missing_amount_limit")
+        elif proposal.amount > limits.max_amount:
             mismatches.append("amount_exceeded")
         if limits.unit is not None and proposal.unit != limits.unit:
             mismatches.append("amount_unit_mismatch")
