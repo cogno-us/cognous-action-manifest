@@ -4,16 +4,21 @@
   "title": "RedactionHint",
   "description": "A hint indicating that a specific payload field should be redacted in exported records.",
   "type": "object",
-  "required": ["field_path"],
+  "required": [
+    "field_path"
+  ],
   "additionalProperties": false,
   "properties": {
     "field_path": {
       "type": "string",
-      "minLength": 1,
-      "description": "JSON path or field name to be redacted in exported records."
+      "description": "JSON path or field name to be redacted in exported records.",
+      "pattern": "\\S"
     },
     "reason": {
-      "type": ["string", "null"],
+      "type": [
+        "string",
+        "null"
+      ],
       "description": "Reason for redacting this field."
     },
     "replacement": {

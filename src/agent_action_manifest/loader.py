@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import os
-import tempfile
+import secrets
 from pathlib import Path
 
 from pydantic import ValidationError
@@ -81,8 +81,8 @@ def dump_manifest(manifest: AgentActionManifest, path: str | Path) -> Path:
 
     The document is encoded to UTF-8 before any file is opened, so text that cannot be encoded (for example an unpaired surrogate)
     raises ``ValueError`` and leaves an existing file untouched. The bytes are written to a temporary file in the same directory and
-    moved over the target with ``os.replace``, so a reader never sees a partial file. A new file gets the usual umask-based mode; an
-    existing file keeps its mode.
+    moved over the target with ``os.replace``, so a reader never sees a partial file. A new file gets the fixed private mode 0600, independent of the
+    process umask; an existing file keeps its mode.
 
     Returns:
         The resolved Path that was written.
@@ -97,16 +97,15 @@ def dump_manifest(manifest: AgentActionManifest, path: str | Path) -> Path:
     try:
         mode = os.stat(path).st_mode & 0o7777
     except FileNotFoundError:
-        umask = os.umask(0)
-        os.umask(umask)
-        mode = 0o666 & ~umask
-    fd, temporary = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
+        mode = 0o600
+    temporary = os.path.join(path.parent, f"{path.name}.{secrets.token_hex(8)}.tmp")
+    fd = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0), 0o600)
     try:
         with os.fdopen(fd, "wb") as stream:
             stream.write(encoded)
             stream.flush()
             os.fsync(stream.fileno())
-        os.chmod(temporary, mode)
+            os.fchmod(stream.fileno(), mode)
         os.replace(temporary, path)
     except BaseException:
         try:

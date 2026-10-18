@@ -61,6 +61,12 @@ and requires a new downstream decision. The Manifest helper also verifies that
 authority scopes appear in `requested_permissions`. This remains declaration
 matching, not proof that those permissions were actually granted.
 
+`proposal_mismatches()` also reports `action_blocked` when the action's
+effective default is `block`, `missing_effect_limits` when the action declares
+no `effect_limits` and the proposal carries an amount above 0 or more than one
+effect, and `missing_amount_limit` when `effect_limits.max_amount` is absent and
+the amount is above 0.
+
 ## Declaration matching is not authorization
 
 `proposal_mismatches()` performs deterministic structural matching only. An

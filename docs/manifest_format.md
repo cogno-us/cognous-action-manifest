@@ -192,3 +192,9 @@ example, the models do not enforce every identifier, digest, version-pin and
 uniqueness constraint the schemas express. Consumers that need schema
 conformance should validate the JSON document against the published schema
 separately.
+
+`tests/test_schema_validator_parity.py` runs a fixture corpus through both. The
+schema and the Python validator agree on every case except the rules a JSON
+schema cannot express (uniqueness across items, references between
+collections, existence and overlap rules over arrays); those cases are listed
+in the test as known differences.
