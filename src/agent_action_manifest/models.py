@@ -5,7 +5,6 @@ Pydantic models for the Agent Action Manifest schema.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
 
 from pydantic import BaseModel as PydanticBaseModel, ConfigDict, Field, model_validator
 import math
