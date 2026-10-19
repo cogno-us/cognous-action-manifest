@@ -105,9 +105,9 @@ Status labels: **merged** = merged in this repository; **selected** = pinned in 
 |---|---|---|---|
 | Manifest 1.0 | The base format; still loads and validates. It is not the runtime-consumption profile. | merged | [format](docs/manifest_format.md) |
 | Manifest 1.1 | Runtime-consumption profile: stable `action_id` and `adapter_id`, `target_policy`, `effect_limits`, `authority_context` references; canonical manifest, payload and proposal commitments; deterministic declaration matching. | selected | [contract](docs/runtime_consumption_contract.md) |
-| Stricter 1.1 checks after the lock | E022 and E023 (explicit, usable `effect_limits`), proposal mismatch reports `action_blocked`, `missing_effect_limits` and `missing_amount_limit`, strict number handling, bounded loader. | merged | [contract](docs/runtime_consumption_contract.md), [CHANGELOG](CHANGELOG.md) |
-| Runtime Action Proposal 1.2 | Tenant-aware proposal generation: requires `tenant_id` (refused in 1.1); no generation label is carried yet. A W0 candidate contract. | merged, not selected | [W0 contract](docs/w0-c1-c6-contracts.md) |
-| OpenAPPA declaration binding | Optional helper that builds a declaration record from a 1.1 manifest. It is not imported by the default path, asks OpenAPPA for nothing and grants nothing. | merged, not selected | [binding page](docs/integrations/openappa-binding.md) |
+| Stricter 1.1 checks | E022 and E023 (explicit, usable `effect_limits`), proposal mismatch reports `action_blocked`, `missing_effect_limits` and `missing_amount_limit`, strict number handling, bounded loader. | merged | [contract](docs/runtime_consumption_contract.md), [CHANGELOG](CHANGELOG.md) |
+| Runtime Action Proposal 1.2 | Tenant-aware proposal generation: requires `tenant_id` (refused in 1.1); no generation label is carried yet. A W0 candidate contract. | merged | [W0 contract](docs/w0-c1-c6-contracts.md) |
+| OpenAPPA declaration binding | Optional helper that builds a declaration record from a 1.1 manifest. It is not imported by the default path, asks OpenAPPA for nothing and grants nothing. | merged | [binding page](docs/integrations/openappa-binding.md) |
 
 ### Python modules (`src/agent_action_manifest/`)
 
@@ -163,8 +163,6 @@ For a nontechnical introduction, read the [business overview](collateral/busines
 
 Use the [current component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) for integration selection and the [central test hub](https://github.com/cogno-us/cognous-stack-qualification/blob/main/results/readme-commentary/index.md) for revision-specific qualification commentary. Source acceptance, selection and deployment approval remain separate decisions. The package version and the runtime consumption profile are different version axes.
 
-<!-- pin-round: the lock pin for action_manifest is 46c950bed37f; the "merged, not selected" and "after the lock" labels above and in docs/README.md describe what main adds. Re-read them when the pin moves. -->
-
 Operational deployment trust is still [HOLD under orchestrator #30](https://github.com/cogno-us/cognous-stack-orchestrator/issues/30). No signature, evidence package, successful test or source merge creates a production grant, proves external settlement, or changes selected release authority. Test results, run commentary and historical qualification records are read against their recorded source revisions.
 
 ## Where it fits: Cognous stack components
@@ -173,7 +171,7 @@ Operational deployment trust is still [HOLD under orchestrator #30](https://gith
 
 <!-- stack-map:start -->
 <!-- Canonical block: identical text in every component README. Source: docs/stack-map.md in the hub. Refresh at the pin round. -->
-The Open Control Stack groups its repositories by responsibility. The groups are a navigation map, not an execution sequence and not a requirement to install every component. The hub [component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) is the only source of selected revisions; [release status](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/release-status.md) states their evidence and limits. Last checked against `component-lock.json` at hub commit `dcc9bd7533ef`.
+The Open Control Stack groups its repositories by responsibility. The groups are a navigation map, not an execution sequence and not a requirement to install every component. The hub [component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) is the only source of selected revisions; [release status](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/release-status.md) states their evidence and limits. The component revisions selected for the stack are listed in the hub's `component-lock.json`; this repository does not record which hub commit it was last checked against.
 
 | Group | Members |
 | --- | --- |

@@ -9,7 +9,7 @@ authority, or execute tools.
 For the bounded synthetic integration pilot, the accepted Alvorada baseline is:
 
 - repository: `cogno-us/cognous-institutional-governance`
-- commit: `fb3d97938969a89e149e8ff8db2756091d1233fc`
+- revision: the governance revision recorded in the hub `component-lock.json`
 - Authority Context schema: `0.1.0`
 - pilot: simulated customer refund workflow with routine and higher-consequence cases
 
