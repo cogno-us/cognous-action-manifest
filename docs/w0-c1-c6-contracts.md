@@ -4,7 +4,7 @@ Status: W0 candidate contract. This document defines contract bytes and migratio
 
 ## Baseline
 - inspected main: `a56a15efd3d9524698b204dc43f5f874dcc4cd96`
-- selected Manifest 1.1 revision remains `46c950bed37fe3812000895430bc0312d29e37ce`
+- at the time of this W0 page the selected Manifest 1.1 revision was `46c950bed37fe3812000895430bc0312d29e37ce`; the hub lock records the current selection
 - Manifest 1.1 and existing `RuntimeActionProposal` remain valid historical contracts.
 
 ## C1 generation: Runtime Action Proposal 1.2

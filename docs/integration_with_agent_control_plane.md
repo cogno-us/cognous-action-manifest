@@ -97,6 +97,6 @@ grant is active, whether delegated authority is still current, whether an
 approval is valid, or whether policy/status has changed. Those checks belong to
 the Control Plane resolver using authoritative institutional sources.
 
-For the bounded refund pilot, Authority Context 0.1.0 is pinned to Alvorada commit
-`fb3d97938969a89e149e8ff8db2756091d1233fc`. This is a synthetic integration
+For the bounded refund pilot, Authority Context 0.1.0 is taken from the governance revision recorded in the
+hub lock. This is a synthetic integration
 baseline, not evidence of institutional adoption or deployment.

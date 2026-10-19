@@ -23,8 +23,8 @@ Labels follow the hub [stack map](https://github.com/cogno-us/cognous-open-contr
 | [Runtime consumption contract](runtime_consumption_contract.md) | Manifest 1.1: canonical commitments, declaration matching, the Authority Context mapping and the required negative cases. | selected |
 | [Integration with the Control Plane](integration_with_agent_control_plane.md) | How a manifest relates to the Control Plane, Replay Bundle and Evidence Pack. This repository implements only the manifest format. | merged |
 | [Examples](examples.md) | What each example manifest declares. | merged |
-| [OpenAPPA declaration binding](integrations/openappa-binding.md) | Optional helper that produces a declaration record, not a wire request, grant or permission. The page records the revision it was written against. | merged, not selected |
-| [W0 contract: exact action and declaration projection](w0-c1-c6-contracts.md) | Runtime Action Proposal 1.2 (tenant-aware) and the declaration projection. A W0 candidate contract; contract bytes and migration rules only. | merged, not selected |
+| [OpenAPPA declaration binding](integrations/openappa-binding.md) | Optional helper that produces a declaration record, not a wire request, grant or permission. The page records the revision it was written against. | merged |
+| [W0 contract: exact action and declaration projection](w0-c1-c6-contracts.md) | Runtime Action Proposal 1.2 (tenant-aware) and the declaration projection. A W0 candidate contract; contract bytes and migration rules only. | merged |
 
 ## Historical and planning pages
 
