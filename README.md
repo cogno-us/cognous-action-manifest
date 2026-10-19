@@ -17,83 +17,206 @@
 
 **Declare the action before evaluating permission.**
 
-**Stack group: 03 · Declaration & Policy Control.** See the [six-group component map](#cognous-stack-components).
-
-## Overview
-
-A lightweight format, Python validator and CLI for describing the actions an AI agent may propose. Manifest 1.1 adds deterministic runtime bindings so a downstream controller can compare a proposal with a specific declared action.
-
-**Implementation status:** public reference work. The [current component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) defines the selected integration; a component merge does not automatically change that selection or approve deployment.
-
-## Selection and example
-
-Use the [current component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) for integration selection and the [central test hub](https://github.com/cogno-us/cognous-stack-qualification/blob/main/results/readme-commentary/index.md) for revision-specific qualification commentary. Source acceptance, selection and deployment approval remain separate decisions.
-
-**Synthetic example:** A Manifest describes a synthetic refund action, but it cannot authorize an attempt. The Control Plane must bind the exact action, target, payload and requested permissions to current independently resolved authority.
-
-Operational deployment trust is still [HOLD under orchestrator #30](https://github.com/cogno-us/cognous-stack-orchestrator/issues/30). No signature, evidence package, successful test or source merge creates a production grant, proves external settlement, or changes selected release authority.
-
-## Purpose and intended users
-
-A tool name is not a sufficient policy boundary. The same integration can read information, draft a message, issue a payment or delete a record. Reviewers need an explicit action inventory and developers need stable identifiers and constraints that survive handoff to runtime control.
-
-Engineers can inspect the reference contracts and examples; enterprise architecture, security and governance reviewers can examine the boundary and evidence. Evaluate this component for its named responsibility rather than as a complete governance platform.
-
-## Key features
-
-| Capability | Implemented or specified responsibility |
+| | |
 |---|---|
-| **Action inventory** | Identify tools, action types, owners and the intended scope of an agent before execution. |
-| **Governance requirements** | Declare authority, review and reliance requirements without issuing grants. |
-| **Payload handling** | Describe sensitive fields and redaction hints for downstream record handling. |
-| **Runtime binding** | Bind stable action and adapter IDs, finite targets, effect limits and Authority Context references under the 1.1 profile. |
-| **Validation and inspection** | Use Pydantic models, JSON schemas and the aam CLI to validate, summarize and list actions. The Python models are not a schema-conformance check, and the JSON schemas and the Python validator each check rules the other does not (see `docs/manifest_format.md`); a conforming consumer runs both. |
+| Lock status | **selected**: lock key `action_manifest`, interface Manifest 1.1 (see [Selection and compatibility](#selection-and-compatibility)) |
+| Stack group | 03 Declaration & Policy Control (siblings: [Control Plane](https://github.com/cogno-us/cognous-control-plane)); see [where it fits](#cognous-stack-components) |
+| Package and command | package `agent-action-manifest` 0.1.0, import `agent_action_manifest`, command `aam` ([naming](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/naming.md)) |
+| Requirements | Python 3.11 or newer; Linux is the supported platform |
+| Documentation | [Documentation index](docs/README.md) |
 
-## How it works
+## What it is, who it is for, what it does not do
 
-A reviewer declares a routine refund and its allowed adapter, target and effect limits. The runtime binds a proposal to that manifest commitment. The Control Plane then independently resolves institutional authority and checks the actual proposal; matching the declaration alone never authorizes the refund.
+**What it is.** A lightweight format, Python validator and command-line tool for describing the actions an AI agent may propose: which tools and actions exist, what authority, review, reliance and payload rules each declares, and which fields carry redaction hints. Manifest 1.1 adds deterministic runtime bindings (stable action and adapter identities, finite targets, effect limits and Authority Context references) so a downstream controller can compare a proposal with one specific declared action.
 
-A valid signature, chain inclusion, message receipt, reasoning instruction or evidence-package digest does not authorize execution. Institutional authority must be supplied and evaluated through the appropriate trusted boundary.
+**Who it is for.** Engineers who write or consume action declarations, and reviewers who need an explicit inventory of what an agent can propose before they look at runtime control. Engineers can inspect the reference contracts and examples; architecture, security and governance reviewers can examine the boundary and evidence.
 
-## Getting started
+**What it does not do.** It is declaration and validation. It is not a permission system, a security boundary or runtime access control. A valid manifest does not establish institutional legitimacy, current approval, a completed effect or compliance, and a manifest cannot authorize an attempt. A passing example is not a certification of any deployment. The [known limits](#known-limits) are listed below.
 
-From a fresh repository checkout, use Python 3.11+ and an activated virtual environment. Install only into that environment. Package installation needs network access; the commands below exercise local reference tooling. For the full selected integration, use the [hub quickstart](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/quickstart.md), whose runner supplies exact producer checkouts and test wiring.
+**Synthetic example.** A manifest declares a synthetic refund action and its allowed adapter, target and effect limits. The runtime binds a proposal to that manifest commitment; the [Control Plane](https://github.com/cogno-us/cognous-control-plane) then independently resolves institutional authority and checks the actual proposal. Matching the declaration alone never authorizes the refund.
+
+## Quick start (about one minute)
+
+Prerequisites: Python 3.11 or newer, `git`, and network access for package installation (the `pydantic` dependency; the `dev` extra adds `pytest` and `jsonschema`). Run the commands from the repository root: `aam check-examples` reads `examples/` from the current directory.
 
 ```bash
+git clone https://github.com/cogno-us/cognous-action-manifest
+cd cognous-action-manifest
+python3 -m venv .venv && . .venv/bin/activate
 python -m pip install -e ".[dev]"
 aam validate examples/refund_integration_v1_1.manifest.json
 aam summarize examples/customer_service_agent.manifest.json
+aam list-actions examples/customer_service_agent.manifest.json
 aam check-examples
 ```
 
-## Scope and compatibility
+Expected output, with exit code 0 for each command:
 
-Use the [current component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) for the selected revision. The package version and the runtime consumption profile are different version axes. The bounded refund fixture is integration evidence; the other domain examples demonstrate declaration structure, not deployed sector assurance.
+```text
+$ aam validate examples/refund_integration_v1_1.manifest.json
+Validation result: VALID
+Manifest ID:       refund-integration-pilot-v1
+No issues found.
 
-Test results, run commentary and historical qualification records are maintained in the [central test hub](https://github.com/cogno-us/cognous-stack-qualification/blob/main/results/readme-commentary/index.md). Read them against their recorded source revisions; source selection and deployment approval are separate decisions.
+$ aam summarize examples/customer_service_agent.manifest.json
+Manifest ID:          customer-service-agent-v1
+Agent name:           Customer Service Agent
+Environment:          production
+Tools:                3
+Actions:              4
+...
 
-## Limitations and deployment decisions
+$ aam list-actions examples/customer_service_agent.manifest.json
+action_name   tool_name   action_type    posture   authority_scopes                review_mode
+----------------------------------------------------------------------------------------------
+crm_read      crm_tool    read           escalate  (none)                          none
+...
 
-This is declaration and validation, not a security boundary or runtime access-control system. A valid manifest does not establish institutional legitimacy, current approval, a completed effect or compliance. Redaction hints must be applied by the exporting system.
+$ aam check-examples
+VALID       examples/customer_service_agent.manifest.json (0 warning(s))
+...
+VALID       examples/refund_integration_v1_1.manifest.json (0 warning(s))
+```
 
-Review original artifacts and their exact source revisions before extending a claim to a new environment. New dependencies, authority sources, destinations or enforcement mechanisms need their own compatibility and qualification. A passing reference case is not a certification of an enterprise deployment.
+Exit codes: `0` valid; `1` invalid manifest (for `validate`, or any invalid example for `check-examples`); `2` usage error, missing file, or a file that fails to load. For example, removing `effect_limits` from the first action of the refund example makes `aam validate` print `Validation result: INVALID` and `[E022] ... must declare explicit effect_limits in v1.1.` and exit with `1`. The CLI has no help flag: running `aam` without a command prints the usage list and exits `2`.
 
-## Repository guide
+**What this does not prove.** `VALID` means the document passed this package's checks. It is a declaration only: it is not permission, not evidence that any action ran, and not a conformance claim by itself (see [schemas and Python checks](docs/manifest_format.md#schemas-and-python-checks-are-complementary)).
 
-Use these sources for details; their historical checkpoints retain the status and scope of the work they recorded:
+To see the manifest, replay and evidence-pack commands run together offline, use `cognous-ocs demo` from the [ergonomics repository](https://github.com/cogno-us/cognous-open-control-stack-ergonomics) (its README and `docs/demo.md` state what the demo does and does not prove). For the full selected integration, use the [hub quickstart](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/quickstart.md), whose runner supplies exact producer checkouts and test wiring.
 
-- [docs/runtime_consumption_contract.md](docs/runtime_consumption_contract.md)
-- [docs/manifest_format.md](docs/manifest_format.md)
-- [docs/integration_with_agent_control_plane.md](docs/integration_with_agent_control_plane.md)
-- [docs/examples.md](docs/examples.md)
+Run the tests with `python -m pytest` and the example check with `aam check-examples` (the same two commands the CI workflow runs; see [CONTRIBUTING](CONTRIBUTING.md)).
+
+## What ships
+
+Status labels: **merged** = merged in this repository; **selected** = pinned in the hub lock; **known limit**; **proposed**. See the [stack map](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/stack-map.md#status-labels). A newer commit here is not selected until the hub lock changes.
+
+### Command-line tool `aam`
+
+| Command | Purpose | Label |
+|---|---|---|
+| `aam validate <manifest.json>` | Validate a manifest and report errors and warnings. | selected |
+| `aam summarize <manifest.json>` | Summarize the declared actions and their requirements. | selected |
+| `aam list-actions <manifest.json>` | Table of actions with posture, authority scopes and review mode. | selected |
+| `aam check-examples` | Validate every `examples/*.manifest.json` file. | selected |
+
+### Manifest versions and contracts
+
+| Item | What it is | Label | Details |
+|---|---|---|---|
+| Manifest 1.0 | The base format; still loads and validates. It is not the runtime-consumption profile. | merged | [format](docs/manifest_format.md) |
+| Manifest 1.1 | Runtime-consumption profile: stable `action_id` and `adapter_id`, `target_policy`, `effect_limits`, `authority_context` references; canonical manifest, payload and proposal commitments; deterministic declaration matching. | selected | [contract](docs/runtime_consumption_contract.md) |
+| Stricter 1.1 checks after the lock | E022 and E023 (explicit, usable `effect_limits`), proposal mismatch reports `action_blocked`, `missing_effect_limits` and `missing_amount_limit`, strict number handling, bounded loader. | merged | [contract](docs/runtime_consumption_contract.md), [CHANGELOG](CHANGELOG.md) |
+| Runtime Action Proposal 1.2 | Tenant-aware proposal generation: requires `tenant_id` (refused in 1.1); no generation label is carried yet. A W0 candidate contract. | merged, not selected | [W0 contract](docs/w0-c1-c6-contracts.md) |
+| OpenAPPA declaration binding | Optional helper that builds a declaration record from a 1.1 manifest. It is not imported by the default path, asks OpenAPPA for nothing and grants nothing. | merged, not selected | [binding page](docs/integrations/openappa-binding.md) |
+
+### Python modules (`src/agent_action_manifest/`)
+
+| Module | Purpose |
+|---|---|
+| `models` | Pydantic models for the manifest, actions, requirements and the runtime proposals (1.1 and 1.2). |
+| `loader` | `load_manifest`, `load_manifest_json`, `dump_manifest`; bounded and atomic file handling. |
+| `validator` | `validate_manifest`, returning a `ValidationReport` with error and warning codes. |
+| `binding` | Manifest, payload and proposal digests; `resolve_action`; `proposal_mismatches`. |
+| `openappa_binding` | Optional OpenAPPA declaration binding (see above). |
+| `cli` | The `aam` entry point. |
+
+### JSON schemas (`schemas/`)
+
+| Schema | Describes |
+|---|---|
+| `agent_action_manifest.schema.json` | The manifest document (includes the 1.1 conditions). |
+| `tool_action.schema.json` | One action declaration. |
+| `authority_requirement.schema.json`, `authority_context_requirement.schema.json` | Authority scope requirements and Authority Context references. |
+| `review_requirement.schema.json`, `reliance_requirement.schema.json` | Review mode and reliance requirements. |
+| `payload_policy.schema.json`, `redaction_hint.schema.json` | Payload field rules and redaction hints. |
+| `target_policy.schema.json`, `effect_limits.schema.json` | Finite targets and explicit effect limits (1.1). |
+| `runtime_action_proposal.schema.json`, `runtime_action_proposal_v1_2.schema.json` | The runtime proposal in generations 1.1 and 1.2. |
+| `validation_report.schema.json` | The validation report. |
+
+The schemas and the Python validator each check rules the other does not; a conforming consumer runs both.
+
+### Examples (`examples/`)
+
+| File | Shows |
+|---|---|
+| `customer_service_agent.manifest.json` | Declaration structure for a customer service agent (four actions). |
+| `finance_workflow_agent.manifest.json` | Dual-control approval and audit export declarations. |
+| `internal_research_agent.manifest.json` | Read, summarize and export declarations with human review. |
+| `procurement_agent.manifest.json` | Purchase order and vendor email declarations. |
+| `refund_integration_v1_1.manifest.json` | The synthetic bounded refund fixture for the 1.1 runtime-consumption profile. |
+| `runtime_action_proposal_v1_2.json` | An example tenant-aware proposal (1.2). |
+
+The refund fixture is integration evidence; the other domain examples demonstrate declaration structure, not deployed sector assurance. See [examples](docs/examples.md).
+
+## Documentation
+
+The [documentation index](docs/README.md) lists every page in this repository by role, with historical pages labelled. Start with:
+
+- [Concepts](docs/concepts.md) and the [manifest format](docs/manifest_format.md).
+- The [runtime consumption contract](docs/runtime_consumption_contract.md) for Manifest 1.1.
+- [Integration with the Control Plane](docs/integration_with_agent_control_plane.md).
+- [Examples](docs/examples.md).
 
 For a nontechnical introduction, read the [business overview](collateral/business-collateral.md) and [one-page overview](collateral/one-page-overview.md). Both describe this component's role and evidence limits, not additional runtime features.
 
+## Selection and compatibility
+
+Use the [current component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json) for integration selection and the [central test hub](https://github.com/cogno-us/cognous-stack-qualification/blob/main/results/readme-commentary/index.md) for revision-specific qualification commentary. Source acceptance, selection and deployment approval remain separate decisions. The package version and the runtime consumption profile are different version axes.
+
+<!-- pin-round: the lock pin for action_manifest is 46c950bed37f; the "merged, not selected" and "after the lock" labels above and in docs/README.md describe what main adds. Re-read them when the pin moves. -->
+
+Operational deployment trust is still [HOLD under orchestrator #30](https://github.com/cogno-us/cognous-stack-orchestrator/issues/30). No signature, evidence package, successful test or source merge creates a production grant, proves external settlement, or changes selected release authority. Test results, run commentary and historical qualification records are read against their recorded source revisions.
+
+<!-- stack-block:start -->
+## Where it fits: Cognous stack components
+
+<a id="cognous-stack-components"></a>
+
+The Open Control Stack groups component responsibilities into five groups, plus a cross-cutting exchange and two side groups. The groups are a navigation map. They are not an execution sequence and not a requirement to install every component. Selected revisions come only from the hub [component lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json), read with [release status](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/release-status.md).
+
+| Group | Components |
+|---|---|
+| 01 Knowledge & Provenance | [Evidence Registry (The Index)](https://github.com/cogno-us/cognous-evidence-registry) · [Evidence Attestation (BitRep)](https://github.com/cogno-us/cognous-evidence-attestation) |
+| 02 Institutional Governance | [Institutional Governance (Alvorada)](https://github.com/cogno-us/cognous-institutional-governance) |
+| 03 Declaration & Policy Control | [Action Manifest](https://github.com/cogno-us/cognous-action-manifest) · [Control Plane](https://github.com/cogno-us/cognous-control-plane) |
+| 04 Constrained Execution | [Execution Runtime](https://github.com/cogno-us/cognous-execution-runtime) |
+| 05 Replay & Evidence | [Replay Bundle](https://github.com/cogno-us/cognous-replay-bundle) · [Governance Evidence Pack](https://github.com/cogno-us/cognous-governance-evidence-pack) · [ODES](https://github.com/cogno-us/open-decision-evidence-standard) |
+| Cross-cutting exchange | [Governed Exchange (GAX/IMX)](https://github.com/cogno-us/cognous-governed-exchange) |
+| Optional reasoning protocols (side group) | [PRP](https://github.com/cogno-us/portable-reasoning-protocol) · [Research Intelligence Protocol](https://github.com/cogno-us/research-intelligence-protocol) · [TFA Protocol](https://github.com/cogno-us/truth-freedom-agency-protocol) |
+| Tooling and qualification (side group) | [Ergonomics (cognous-ocs)](https://github.com/cogno-us/cognous-open-control-stack-ergonomics) · [Verifier](https://github.com/cogno-us/cognous-open-control-stack-verifier) · [Orchestrator](https://github.com/cogno-us/cognous-stack-orchestrator) · [Qualification](https://github.com/cogno-us/cognous-stack-qualification) |
+| Hub | [Open Control Stack hub](https://github.com/cogno-us/cognous-open-control-stack) |
+
+Hub pages: [stack map](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/stack-map.md) (one row per repository), [naming](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/naming.md) (display names, packages, commands, former names), [profiles and tools](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/profiles-and-tools.md) and the [documentation index](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/README.md).
+
+Status labels used in every "What ships" table: **merged** (merged in the owning repository, not by itself selected), **selected** (pinned in the hub lock), **known limit** (a limitation existing documentation already states) and **proposed** (draft or planned, not a supported interface). A signature, registry entry, message receipt or evidence summary does not grant execution authority.
+
+<!-- pin-round: refresh the hub commit on the next line when the component lock changes -->
+Last checked against `component-lock.json` at hub commit `dcc9bd7533ef`.
+<!-- stack-block:end -->
+
+## Known limits
+
+Each item below is **known limit** documented in this repository.
+
+- A declaration is not permission to execute. A valid manifest, digest or matching proposal is never an authorization token; the Control Plane resolves current authority separately ([contract](docs/runtime_consumption_contract.md#declaration-matching-is-not-authorization)).
+- The JSON schemas and the Python validator each check rules the other does not; a conforming consumer runs both ([format](docs/manifest_format.md#schemas-and-python-checks-are-complementary)).
+- The payload policy checks field names, not values. A payload field that selects a recipient, resource or amount must be expressed as the action's `target` or `amount`; a field with an in-scope name and a wrong value passes this check. A per-field value constraint is not part of this contract ([format](docs/manifest_format.md#payload-policy-checks-field-names-not-values)).
+- An action with no declared `effect_limits` gets an implicit ceiling of amount 0 and one effect when matched; it is never read as unbounded.
+- Redaction hints are advisory; the exporting system must apply them.
+- Sink declarations in the optional OpenAPPA binding are not evidence of interception or of target coverage.
+- Review original artifacts and exact source revisions before extending a claim to a new environment. New dependencies, authority sources, destinations or enforcement mechanisms need their own compatibility and qualification.
+
+More shared scope and limits are stated once in the hub [guarantees and limits](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/guarantees-and-limits.md).
+
 ## Contributing and attribution
 
-[Contribution guidance](CONTRIBUTING.md) describes review and validation expectations. Keep evidence-linked claims, preserve historical records and separate proposed features from accepted implementation.
+[Contribution guidance](CONTRIBUTING.md) describes review and validation expectations; see also the [security policy](SECURITY.md), the [code of conduct](CODE_OF_CONDUCT.md) and the [changelog](CHANGELOG.md). Keep evidence-linked claims, preserve historical records and separate proposed features from accepted implementation.
 
-See [LICENSE](LICENSE) and [attribution](NOTICE) for the existing terms and third-party scope. Developed by [Cognous](https://cogno.us); no licensing change is part of this documentation update.
+See [LICENSE](LICENSE) and [attribution](NOTICE) for the existing terms and third-party scope. Developed by [Cognous](https://cogno.us).
+
+## Repository locations
+
+See the [repository rename map and compatibility notes](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/repository-renames.md) for current component URLs. Existing package names, schema identifiers and retained producer identities are unchanged.
 
 ---
 
@@ -106,38 +229,6 @@ Selected external sources from the October 2026 research review. These inform ev
 - [OECD. *Agentic AI in organisations: Early insights from practitioner interviews*. OECD Artificial Intelligence Papers, No. 65 (2026)](https://doi.org/10.1787/1257a26f-en). Qualitative practitioner research on bounded autonomy, oversight and organizational deployment.
 
 See the [research bibliography](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/research-bibliography.md) for review scope and source-verification limits.
-
-## Cognous stack components
-
-The six groups organize component responsibilities. They are not an execution
-sequence or a requirement to install every component. The [hub lock](https://github.com/cogno-us/cognous-open-control-stack/blob/main/component-lock.json)
-defines the selected integration; [release status](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/release-status.md)
-defines its evidence and limits.
-
-| Group | Components |
-| --- | --- |
-| **01 · Knowledge & Provenance** | [The Index (Evidence Registry)](https://github.com/cogno-us/cognous-evidence-registry) · [BitRep (Evidence Attestation)](https://github.com/cogno-us/cognous-evidence-attestation) |
-| **02 · Institutional Governance** | [Alvorada (Institutional Governance)](https://github.com/cogno-us/cognous-institutional-governance) · authority contracts |
-| **03 · Declaration & Policy Control** | [Action Manifest](https://github.com/cogno-us/cognous-action-manifest) · [Control Plane](https://github.com/cogno-us/cognous-control-plane) |
-| **04 · Constrained Execution** | [Execution Runtime (Moltbot Safe)](https://github.com/cogno-us/cognous-execution-runtime) |
-| **05 · Replay & Evidence** | [Replay Bundle](https://github.com/cogno-us/cognous-replay-bundle) · [Governance Evidence Pack](https://github.com/cogno-us/cognous-governance-evidence-pack) · [ODES](https://github.com/cogno-us/open-decision-evidence-standard) |
-| **06 · Reasoning & Human Oversight** | [PRP](https://github.com/cogno-us/portable-reasoning-protocol) · [Research Intelligence](https://github.com/cogno-us/research-intelligence-protocol) · [TFA](https://github.com/cogno-us/truth-freedom-agency-protocol) |
-
-**Cross-cutting exchange:** [Governed Exchange (GAX/IMX)](https://github.com/cogno-us/cognous-governed-exchange) connects
-governed messages, recipient assessment and continuity across the groups. It is
-separate from Alvorada's institutional authority framework.
-
-Execution Runtime and Moltbot Safe name the same repository here. The supported
-Cognous Python execution boundary remains distinct from the retained upstream
-application. PRP, Research Intelligence and TFA are optional behavioral
-instructions; they do not enforce authorization or substitute for human oversight.
-A signature, registry entry, message receipt or evidence summary does not grant
-execution authority.
-
-
-## Repository locations
-
-See the [repository rename map and compatibility notes](https://github.com/cogno-us/cognous-open-control-stack/blob/main/docs/repository-renames.md) for current component URLs. Existing package names, schema identifiers and retained producer identities are unchanged.
 
 <!-- Retained anchors for existing documentation links. -->
 <a id="current-selection-historical-evidence-and-a-bounded-example"></a>
