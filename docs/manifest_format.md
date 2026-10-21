@@ -178,6 +178,18 @@ never read as "unbounded". Present `effect_limits` needs a non-null `max_amount`
 non-empty `unit`, or `max_amount: 0` for an explicit non-monetary action;
 otherwise E023 (`incomplete_effect_limits`).
 
+Identity and target strings are exact. For v1.1, `validate_manifest` reports
+E024 (`ambiguous_identifier`) when an `action_id`, a tool `adapter_id` or an
+entry of `target_policy.allowed_targets` is blank, has leading or trailing
+whitespace, or contains a control character, and E025 (`duplicate_target`) when
+`allowed_targets` repeats an entry. The predicate is the one the OpenAPPA
+binding helper uses (`agent_action_manifest.identifiers`). Targets are literal
+strings, compared by exact equality and never normalized: `*` is an ordinary
+target string and not a wildcard; unbounded access is declared only through
+`allow_any_target`, which E020 refuses for effectful actions. Because
+`proposal_mismatches` runs the validator, an ambiguous declaration reports
+`invalid_manifest`. These rules are not expressed in the JSON schemas.
+
 Loading is bounded: `load_manifest` refuses files over `MAX_MANIFEST_BYTES`
 (4 MiB), non-UTF-8 bytes and deeply nested documents with `ManifestLoadError`.
 `dump_manifest` encodes before opening any file and replaces the target

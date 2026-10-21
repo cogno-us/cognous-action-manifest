@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed - exact identity and target (2026-10-22, scan 4, AM-1)
+- New E024 (`ambiguous_identifier`): v1.1 `action_id`, tool `adapter_id` and each `allowed_targets` entry must be non-blank, without surrounding whitespace and without control characters, using the same predicate as the OpenAPPA helper (now shared as `agent_action_manifest.identifiers.is_exact_identifier`). Previously `' '`, `''` and padded values validated and matched.
+- New E025 (`duplicate_target`): `allowed_targets` must not repeat an entry.
+- `*` is documented as a literal target string, not a wildcard (the contract says targets are exact; no wildcard precedent exists in the repo, so it is not refused).
+
 ### Fixed - strict input (2026-10-22, scan 3)
 - `load_manifest` refuses a duplicate JSON object member at every nesting level (`ManifestLoadError`); previously the last member silently won.
 - `RuntimeActionProposal` (and `RuntimeActionProposalV12`) no longer coerce: `amount` must be a finite JSON number and `effects` a JSON integer (a string, a boolean, `1.0` for `effects`, NaN or infinity is refused), matching the Control Plane's proposal model.
