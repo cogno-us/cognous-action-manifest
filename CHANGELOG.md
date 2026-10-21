@@ -7,11 +7,14 @@
 - New E025 (`duplicate_target`): `allowed_targets` must not repeat an entry.
 - `*` is documented as a literal target string, not a wildcard (the contract says targets are exact; no wildcard precedent exists in the repo, so it is not refused).
 
+### Fixed - export is effectful for authority rules (2026-10-22, scan 4, AM-2)
+- E008 and E014 now include the `export` action type, matching the contract's definition of effectful actions (`docs/manifest_format.md`, already enforced for E020-E023). An `export` action that is not blocked now needs a required authority entry (E008), and with `default_action: allow` also a review mode other than `none` (E014). All shipped examples still validate; no new error code. E007 stays `external_send` only.
+
 ### Fixed - strict input (2026-10-22, scan 3)
 - `load_manifest` refuses a duplicate JSON object member at every nesting level (`ManifestLoadError`); previously the last member silently won.
 - `RuntimeActionProposal` (and `RuntimeActionProposalV12`) no longer coerce: `amount` must be a finite JSON number and `effects` a JSON integer (a string, a boolean, `1.0` for `effects`, NaN or infinity is refused), matching the Control Plane's proposal model.
 - `AuthorityRequirement.required`, `RelianceRequirement.required`, `TargetPolicy.allow_any_target` and `ToolDefinition.allowed` are strict booleans, so `"yes"`, `"false"` and `0` are refused by the models as the JSON schemas already refuse them. Four parity cases added.
-- Not changed: E007/E008/E014 still do not name the `export` action type (the docs do not say they should).
+- Not changed in scan 3: E007/E008/E014 did not name the `export` action type; superseded by the scan 4 entry above.
 
 ### Changed - input validation hardening (fix round 2)
 - `proposal_mismatches` reports `action_blocked`, `missing_effect_limits` and `missing_amount_limit`.

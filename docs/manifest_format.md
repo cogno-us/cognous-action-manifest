@@ -178,6 +178,11 @@ never read as "unbounded". Present `effect_limits` needs a non-null `max_amount`
 non-empty `unit`, or `max_amount: 0` for an explicit non-monetary action;
 otherwise E023 (`incomplete_effect_limits`).
 
+`export` is an effectful type for the authority rules as well: E008 requires a
+required authority entry for a non-blocked `export` action, and E014 requires
+authority and a review mode other than `none` when its effective
+`default_action` is `allow`.
+
 Identity and target strings are exact. For v1.1, `validate_manifest` reports
 E024 (`ambiguous_identifier`) when an `action_id`, a tool `adapter_id` or an
 entry of `target_policy.allowed_targets` is blank, has leading or trailing

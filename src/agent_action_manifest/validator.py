@@ -131,7 +131,7 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
                 issues.append(_error("E024", f"Tool '{action.tool_name}' adapter_id must be an exact identifier (non-blank, no surrounding whitespace, no control characters).", f"{path_prefix}.tool_name", alias="ambiguous_identifier"))
             if tool is not None and not tool.adapter_id:
                 issues.append(_error("E019", f"Tool '{action.tool_name}' must declare adapter_id in v1.1.", f"{path_prefix}.tool_name", alias="missing_adapter_id"))
-            effectful_types = {ActionType.write, ActionType.external_send, ActionType.delete, ActionType.purchase, ActionType.approve}
+            effectful_types = {ActionType.write, ActionType.external_send, ActionType.delete, ActionType.export, ActionType.purchase, ActionType.approve}
             if action.action_type in effectful_types and effective_default != DefaultAction.block:
                 if action.target_policy is None or action.target_policy.allow_any_target or not action.target_policy.allowed_targets:
                     issues.append(_error("E020", f"Action '{action.action_name}' must declare a finite target_policy in v1.1.", f"{path_prefix}.target_policy", alias="unbounded_target_policy"))
@@ -187,9 +187,9 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
                 )
             )
 
-        # 8. write/delete/purchase/approve must have authority unless blocked
+        # 8. write/delete/export/purchase/approve must have authority unless blocked
         if (
-            action.action_type in {ActionType.write, ActionType.delete, ActionType.purchase, ActionType.approve}
+            action.action_type in {ActionType.write, ActionType.delete, ActionType.export, ActionType.purchase, ActionType.approve}
             and not any(item.required and item.scope.strip() for item in action.authority_required)
             and effective_default != DefaultAction.block
         ):
@@ -274,7 +274,7 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
                 )
 
         # 14. default_action "allow" for high-risk types requires authority and non-none review
-        high_risk_types = {ActionType.external_send, ActionType.delete, ActionType.purchase, ActionType.approve}
+        high_risk_types = {ActionType.external_send, ActionType.delete, ActionType.export, ActionType.purchase, ActionType.approve}
         if (
             effective_default == DefaultAction.allow
             and action.action_type in high_risk_types

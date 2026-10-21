@@ -1,4 +1,4 @@
-"""v1.1 identity and target are exact and finite (E024, E025)."""
+"""v1.1 identity and target are exact and finite (E024, E025) and export is effectful (E008, E014)."""
 import copy
 import json
 from pathlib import Path
@@ -81,3 +81,29 @@ def test_matcher_reports_invalid_manifest_for_ambiguous_identity(field):
         "target": " " if field == "target" else _proposal(manifest).target,
     })
     assert "invalid_manifest" in proposal_mismatches(manifest, proposal)
+
+
+def _export_doc(**action):
+    def mutate(d):
+        a = d["actions"][0]
+        a.update(action_type="export", default_action="allow", authority_required=[], review_requirement={"mode": "none"})
+    return _mutated(mutate)
+
+
+def test_export_allow_without_authority_or_review_refused():
+    valid, codes = _codes(_export_doc())
+    assert not valid and {"E008", "E014"} <= codes
+
+
+def test_export_allow_with_authority_and_review_valid():
+    def mutate(d):
+        a = d["actions"][0]
+        a.update(action_type="export", default_action="allow", review_requirement={"mode": "human_review"})
+    assert _codes(_mutated(mutate)) == (True, set())
+
+
+def test_export_blocked_without_authority_valid():
+    doc = _export_doc()
+    doc["actions"][0]["default_action"] = "block"
+    valid, codes = _codes(doc)
+    assert "E008" not in codes and "E014" not in codes
