@@ -96,7 +96,7 @@ class AuthorityRequirement(BaseModel):
         default=None, description="Human-readable description of the authority requirement."
     )
     required: bool = Field(
-        default=True, description="Whether this authority scope is strictly required."
+        default=True, strict=True, description="Whether this authority scope is strictly required."
     )
     source: str | None = Field(
         default=None, description="Origin or governing system for the authority scope."
@@ -120,6 +120,7 @@ class ReviewRequirement(BaseModel):
 class RelianceRequirement(BaseModel):
     required: bool = Field(
         default=False,
+        strict=True,
         description="Whether reliance evidence must be recorded before this action is executed.",
     )
     allowed_source_types: list[RelianceType] = Field(
@@ -160,7 +161,7 @@ class AuthorityContextRequirement(BaseModel):
 
 class TargetPolicy(BaseModel):
     allowed_targets: list[str] = Field(default_factory=list, description="Finite set of allowed runtime targets.")
-    allow_any_target: bool = Field(default=False, description="Legacy escape hatch; v1.1 runtime consumption requires false.")
+    allow_any_target: bool = Field(default=False, strict=True, description="Legacy escape hatch; v1.1 runtime consumption requires false.")
 
 
 class EffectLimits(BaseModel):
@@ -188,7 +189,7 @@ class ToolDefinition(BaseModel):
         default=None, description="Human-readable description of the tool."
     )
     allowed: bool = Field(
-        default=True, description="Whether the agent is permitted to call this tool."
+        default=True, strict=True, description="Whether the agent is permitted to call this tool."
     )
     external_system: str | None = Field(
         default=None, description="External system or service that this tool communicates with."
@@ -322,9 +323,11 @@ class RuntimeActionProposal(BaseModel):
     payload: dict
     payload_commitment: str
     requested_permissions: list[str] = Field(default_factory=list)
-    amount: float = Field(default=0, ge=0)
+    # Strict, as in the Control Plane's own proposal: a JSON number only (an integer is accepted as its float value); a string or
+    # boolean is refused, not coerced. effects is a JSON integer only (a boolean, 1.0 or a string is refused).
+    amount: float = Field(default=0, ge=0, allow_inf_nan=False, strict=True)
     unit: str = ""
-    effects: int = Field(default=1, ge=0)
+    effects: int = Field(default=1, ge=0, strict=True)
     authority_context_ref: str | None = None
     requirement_id: str | None = None
     risk_metadata: dict = Field(default_factory=dict)
