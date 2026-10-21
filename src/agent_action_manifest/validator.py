@@ -6,6 +6,7 @@ Implements all validation rules and returns a ValidationReport.
 
 from __future__ import annotations
 
+from .identifiers import is_exact_identifier
 from .models import (
     ActionType,
     AgentActionManifest,
@@ -117,7 +118,17 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
         if manifest.manifest_version == "1.1":
             if not action.action_id:
                 issues.append(_error("E018", f"Action '{action.action_name}' must declare action_id in v1.1.", f"{path_prefix}.action_id", alias="missing_action_id"))
+            if action.action_id and not is_exact_identifier(action.action_id):
+                issues.append(_error("E024", f"Action '{action.action_name}' action_id must be an exact identifier (non-blank, no surrounding whitespace, no control characters).", f"{path_prefix}.action_id", alias="ambiguous_identifier"))
+            if action.target_policy is not None:
+                targets = action.target_policy.allowed_targets
+                if not all(is_exact_identifier(t) for t in targets):
+                    issues.append(_error("E024", f"Action '{action.action_name}' allowed_targets must be exact identifiers (non-blank, no surrounding whitespace, no control characters).", f"{path_prefix}.target_policy.allowed_targets", alias="ambiguous_identifier"))
+                if len(targets) != len(set(targets)):
+                    issues.append(_error("E025", f"Action '{action.action_name}' allowed_targets must not contain duplicates.", f"{path_prefix}.target_policy.allowed_targets", alias="duplicate_target"))
             tool = tools_by_name.get(action.tool_name)
+            if tool is not None and tool.adapter_id and not is_exact_identifier(tool.adapter_id):
+                issues.append(_error("E024", f"Tool '{action.tool_name}' adapter_id must be an exact identifier (non-blank, no surrounding whitespace, no control characters).", f"{path_prefix}.tool_name", alias="ambiguous_identifier"))
             if tool is not None and not tool.adapter_id:
                 issues.append(_error("E019", f"Tool '{action.tool_name}' must declare adapter_id in v1.1.", f"{path_prefix}.tool_name", alias="missing_adapter_id"))
             effectful_types = {ActionType.write, ActionType.external_send, ActionType.delete, ActionType.export, ActionType.purchase, ActionType.approve}
@@ -176,9 +187,9 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
                 )
             )
 
-        # 8. write/delete/purchase/approve must have authority unless blocked
+        # 8. write/delete/export/purchase/approve must have authority unless blocked
         if (
-            action.action_type in {ActionType.write, ActionType.delete, ActionType.purchase, ActionType.approve}
+            action.action_type in {ActionType.write, ActionType.delete, ActionType.export, ActionType.purchase, ActionType.approve}
             and not any(item.required and item.scope.strip() for item in action.authority_required)
             and effective_default != DefaultAction.block
         ):
@@ -263,7 +274,7 @@ def validate_manifest(manifest: AgentActionManifest) -> ValidationReport:
                 )
 
         # 14. default_action "allow" for high-risk types requires authority and non-none review
-        high_risk_types = {ActionType.external_send, ActionType.delete, ActionType.purchase, ActionType.approve}
+        high_risk_types = {ActionType.external_send, ActionType.delete, ActionType.export, ActionType.purchase, ActionType.approve}
         if (
             effective_default == DefaultAction.allow
             and action.action_type in high_risk_types

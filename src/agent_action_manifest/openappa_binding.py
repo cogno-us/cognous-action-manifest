@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from .binding import manifest_digest
+from .identifiers import is_exact_identifier
 from .models import AgentActionManifest
 
 
@@ -18,10 +19,7 @@ class AppaToolBindingError(ValueError):
     """Declaration cannot be mapped to an unambiguous OpenAPPA tool."""
 
 
-def _identifier(value: object) -> bool:
-    """Reject ambiguous spellings without silently normalizing identities."""
-    return (isinstance(value, str) and bool(value) and value == value.strip()
-            and not any(ord(char) < 32 or ord(char) == 127 for char in value))
+_identifier = is_exact_identifier
 
 
 def _unique_identifiers(values: list[str]) -> bool:
