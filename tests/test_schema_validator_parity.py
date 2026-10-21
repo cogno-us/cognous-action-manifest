@@ -124,6 +124,10 @@ def _cases():
     add('null env',mut(base,lambda d:d.update(environment=None)))
     add('null default_action manifest',mut(base,lambda d:d.update(default_action=None)))
     add('unit non-string',mut(base,lambda d:d['actions'][0]['effect_limits'].update(unit=5)))
+    add('allow_any_target string',mut(base,lambda d:d['actions'][0]['target_policy'].update(allow_any_target='yes')))
+    add('tool allowed string',mut(base,lambda d:d['tools'][0].update(allowed='false')))
+    add('tool allowed int',mut(base,lambda d:d['tools'][0].update(allowed=0)))
+    add('authority required string',mut(base,lambda d:d['actions'][0]['authority_required'][0].update(required='false')))
     add('deep nest',mut(base,lambda d:d.update(metadata={'a':{'a':{'a':1}}})))
     return cases
 

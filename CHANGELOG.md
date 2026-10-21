@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Fixed - strict input (2026-10-22, scan 3)
+- `load_manifest` refuses a duplicate JSON object member at every nesting level (`ManifestLoadError`); previously the last member silently won.
+- `RuntimeActionProposal` (and `RuntimeActionProposalV12`) no longer coerce: `amount` must be a finite JSON number and `effects` a JSON integer (a string, a boolean, `1.0` for `effects`, NaN or infinity is refused), matching the Control Plane's proposal model.
+- `AuthorityRequirement.required`, `RelianceRequirement.required`, `TargetPolicy.allow_any_target` and `ToolDefinition.allowed` are strict booleans, so `"yes"`, `"false"` and `0` are refused by the models as the JSON schemas already refuse them. Four parity cases added.
+- Not changed: E007/E008/E014 still do not name the `export` action type (the docs do not say they should).
+
 ### Changed - input validation hardening (fix round 2)
 - `proposal_mismatches` reports `action_blocked`, `missing_effect_limits` and `missing_amount_limit`.
 - The shared structure walker refuses unpaired surrogates in strings and dictionary keys.

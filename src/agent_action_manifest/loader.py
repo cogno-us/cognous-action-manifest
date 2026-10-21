@@ -24,6 +24,16 @@ class ManifestLoadError(Exception):
     """Raised when a manifest cannot be loaded."""
 
 
+def _refuse_duplicate_members(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """``object_pairs_hook`` for every JSON object, nested ones included: a repeated member name is refused, never last-wins."""
+    seen: dict[str, object] = {}
+    for key, value in pairs:
+        if key in seen:
+            raise ValueError(f"duplicate object member {key!r}")
+        seen[key] = value
+    return seen
+
+
 def load_manifest(path: str | Path) -> AgentActionManifest:
     """Load and parse an AgentActionManifest from a JSON file.
 
@@ -49,8 +59,12 @@ def load_manifest(path: str | Path) -> AgentActionManifest:
         raise ManifestLoadError(f"Manifest file '{path}' is not valid UTF-8: {exc}") from exc
 
     try:
-        payload = json.loads(raw)
+        payload = json.loads(raw, object_pairs_hook=_refuse_duplicate_members)
     except json.JSONDecodeError as exc:
+        raise ManifestLoadError(
+            f"Invalid JSON in manifest file '{path}': {exc}"
+        ) from exc
+    except ValueError as exc:  # a duplicate object member (JSONDecodeError, a ValueError subclass, is handled above)
         raise ManifestLoadError(
             f"Invalid JSON in manifest file '{path}': {exc}"
         ) from exc
